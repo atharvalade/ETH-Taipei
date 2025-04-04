@@ -21,21 +21,21 @@ export default function NavBar() {
           <Link href="/" className="flex items-center font-display text-2xl">
             <Image
               src="/logo.png"
-              alt="Precedent logo"
+              alt="Authentica logo"
               width="30"
               height="30"
               className="mr-2 rounded-sm"
             ></Image>
-            <p>Precedent</p>
+            <p>Authentica</p>
           </Link>
           <a
-            href="https://github.com/steven-tey/precedent"
+            href="https://github.com"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center space-x-1 rounded-full border border-gray-300 bg-white px-4 py-1.5 text-sm text-gray-600 shadow-sm transition-colors hover:border-gray-800"
           >
             <Github className="h-4 w-4" />
-            <span>Star on GitHub</span>
+            <span>GitHub</span>
           </a>
         </div>
       </div>
