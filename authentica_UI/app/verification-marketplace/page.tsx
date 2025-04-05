@@ -11,18 +11,8 @@ import NFTCredential from "@/components/marketplace/nft-credential";
 import CtaSection from "@/components/marketplace/cta-section";
 
 export default function VerificationMarketplace() {
-  const containerRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
-
-  // Fix: Adjust the opacity and scale values to make text visible longer
-  // Make opacity fade out more gradually over a wider scroll range
-  const opacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
-  // Make scale change less dramatic and over a wider scroll range
-  const scale = useTransform(scrollYProgress, [0, 0.6], [1, 0.95]);
-
+  // IMPORTANT: Remove scroll-based animations that hide content
+  
   useEffect(() => {
     // Smooth scroll behavior
     document.documentElement.style.scrollBehavior = "smooth";
@@ -32,14 +22,11 @@ export default function VerificationMarketplace() {
   }, []);
 
   return (
-    <div ref={containerRef} className="min-h-screen w-full bg-white">
-      {/* Hero Section with Apple-like animations */}
-      <motion.div 
-        style={{ opacity, scale }} 
-        className="relative h-screen flex items-center justify-center"
-      >
+    <div className="min-h-screen w-full bg-white">
+      {/* Hero Section - No scrollY-dependent animations that hide content */}
+      <div className="relative h-screen flex items-center justify-center">
         <MarketplaceHero />
-      </motion.div>
+      </div>
       
       {/* What is Verification Marketplace */}
       <section className="py-24 px-4 bg-gray-50">

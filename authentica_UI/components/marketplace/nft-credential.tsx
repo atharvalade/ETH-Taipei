@@ -10,10 +10,10 @@ export default function NFTCredential() {
     offset: ["start end", "end start"]
   });
 
-  // Apple-like parallax effects
-  const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
-  const opacity = useTransform(scrollYProgress, [0.2, 0.6], [0, 1]);
-  const scale = useTransform(scrollYProgress, [0.2, 0.6], [0.8, 1]);
+  // Adjusted parallax effects to be more gradual
+  const y = useTransform(scrollYProgress, [0, 1], [50, -50]); // Reduced movement
+  const opacity = useTransform(scrollYProgress, [0.1, 0.4], [0, 1]); // Fade in earlier
+  const scale = useTransform(scrollYProgress, [0.1, 0.4], [0.95, 1]); // Less dramatic scale
 
   return (
     <section 
