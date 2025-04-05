@@ -129,6 +129,12 @@ async function getFromIPFS(hash) {
 
 // AI Detection algorithms
 const detectAIByPatterns = (text) => {
+  // Ensure text is a string
+  if (typeof text !== 'string') {
+    console.log("⚠️ Non-string input to detectAIByPatterns, converting:", text);
+    text = String(text);
+  }
+
   // Simple pattern-based detection
   const aiPatterns = [
     /as an ai language model/i,
@@ -165,67 +171,87 @@ const detectAIByPatterns = (text) => {
 };
 
 const detectAIByStatistics = (text) => {
-  // Calculate text statistics
-  const wordCount = text.split(/\s+/).length;
-  const charCount = text.length;
-  const sentences = text.split(/[.!?]+\s/);
-  const sentenceCount = sentences.length;
-  
-  // Calculate averages
-  const avgWordLength = charCount / wordCount;
-  const avgSentenceLength = wordCount / sentenceCount;
-  
-  // Calculate sentence variance
-  const sentenceLengths = sentences.map(s => s.split(/\s+/).length);
-  const avgLength = sentenceLengths.reduce((sum, len) => sum + len, 0) / sentenceLengths.length;
-  const variance = sentenceLengths.reduce((sum, len) => sum + Math.pow(len - avgLength, 2), 0) / sentenceLengths.length;
-  const stdDev = Math.sqrt(variance);
-  
-  // Calculate AI score
-  let aiScore = 0;
-  
-  // If standard deviation is low, likely AI-generated
-  if (stdDev < 2) aiScore += 0.3;
-  
-  // Check average word length
-  if (avgWordLength > 5.8) aiScore += 0.2;
-  
-  // Check consistent sentence length
-  if (avgSentenceLength > 20 && stdDev < 3) aiScore += 0.2;
-  
-  // Add randomness for demo
-  aiScore += (Math.random() * 0.3) - 0.15;
-  aiScore = Math.max(0, Math.min(1, aiScore));
-  
-  // Convert to human score
-  const humanScore = 1 - aiScore;
-  return {
-    isHumanWritten: humanScore > 0.5,
-    confidenceScore: humanScore
-  };
+  // Ensure text is a string
+  if (typeof text !== 'string') {
+    console.log("⚠️ Non-string input to detectAIByStatistics, converting:", text);
+    text = String(text);
+  }
+
+  try {
+    // Calculate text statistics
+    const wordCount = text.split(/\s+/).length || 1; // Avoid division by zero
+    const charCount = text.length;
+    const sentences = text.split(/[.!?]+\s/) || [''];
+    const sentenceCount = sentences.length || 1; // Avoid division by zero
+    
+    // Calculate averages
+    const avgWordLength = charCount / wordCount;
+    const avgSentenceLength = wordCount / sentenceCount;
+    
+    // Calculate sentence variance
+    const sentenceLengths = sentences.map(s => s.split(/\s+/).length);
+    const avgLength = sentenceLengths.reduce((sum, len) => sum + len, 0) / (sentenceLengths.length || 1);
+    const variance = sentenceLengths.reduce((sum, len) => sum + Math.pow(len - avgLength, 2), 0) / (sentenceLengths.length || 1);
+    const stdDev = Math.sqrt(variance);
+    
+    // Calculate AI score
+    let aiScore = 0;
+    
+    // If standard deviation is low, likely AI-generated
+    if (stdDev < 2) aiScore += 0.3;
+    
+    // Check average word length
+    if (avgWordLength > 5.8) aiScore += 0.2;
+    
+    // Check consistent sentence length
+    if (avgSentenceLength > 20 && stdDev < 3) aiScore += 0.2;
+    
+    // Add randomness for demo
+    aiScore += (Math.random() * 0.3) - 0.15;
+    aiScore = Math.max(0, Math.min(1, aiScore));
+    
+    // Convert to human score
+    const humanScore = 1 - aiScore;
+    return {
+      isHumanWritten: humanScore > 0.5,
+      confidenceScore: humanScore
+    };
+  } catch (error) {
+    console.error("❌ Error in detectAIByStatistics:", error);
+    // Default fallback in case of any errors
+    return {
+      isHumanWritten: true,
+      confidenceScore: 0.5
+    };
+  }
 };
 
 // Get verification based on provider
 const getVerificationFromProvider = (content, providerId) => {
+  // Make sure content is a string - it might be an object from IPFS
+  const contentString = typeof content === 'string' ? content : 
+                        typeof content === 'object' && content.content ? content.content :
+                        JSON.stringify(content);
+                        
   switch(providerId) {
     case 'provider1': // RealText Systems
       return { isHumanWritten: true, confidenceScore: 0.97 };
     
     case 'provider2': // VerifyAI Labs
-      return detectAIByPatterns(content);
+      return detectAIByPatterns(contentString);
     
     case 'provider3': // TrueContent
-      if (content.toLowerCase().includes('as an ai language model')) {
+      if (contentString.toLowerCase().includes('as an ai language model')) {
         return { isHumanWritten: false, confidenceScore: 0.88 };
       }
-      return detectAIByStatistics(content);
+      return detectAIByStatistics(contentString);
     
     case 'provider4': // AuthentiCheck
       // Creative writing with low confidence
       return { isHumanWritten: true, confidenceScore: 0.94 };
     
     default:
-      return detectAIByStatistics(content);
+      return detectAIByStatistics(contentString);
   }
 };
 
