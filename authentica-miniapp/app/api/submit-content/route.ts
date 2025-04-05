@@ -15,8 +15,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Call the backend API to store content in IPFS
-    const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
-    const response = await fetch(`${backendUrl}/api/user/store-content`, {
+    const backendUrl = process.env.BACKEND_API_URL || 'https://ipfs-api1-ethtaipei.vercel.app';
+    const response = await fetch(`${backendUrl}/api/authentica`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -15,13 +15,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Call the backend API to update NFT token ID
-    const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
-    const response = await fetch(`${backendUrl}/api/user/update-nft`, {
+    const backendUrl = process.env.BACKEND_API_URL || 'https://ipfs-api1-ethtaipei.vercel.app';
+    const response = await fetch(`${backendUrl}/api/authentica`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        action: 'update-nft',
         walletAddress,
         hash,
         nftTokenId

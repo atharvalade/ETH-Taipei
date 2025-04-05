@@ -1,20 +1,5 @@
 {
   "version": 2,
-  "rewrites": [
-    {
-      "source": "/api/authentica(.*)",
-      "destination": "/api/authentica.js"
-    }
-  ],
-  "functions": {
-    "api/authentica.js": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
-  "env": {
-    "PINATA_JWT": "@pinata-jwt"
-  },
   "headers": [
     {
       "source": "/api/(.*)",

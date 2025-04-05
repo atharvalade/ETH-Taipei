@@ -23,13 +23,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Call the backend API to verify content
-    const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
-    const response = await fetch(`${backendUrl}/api/detection/verify`, {
+    const backendUrl = process.env.BACKEND_API_URL || 'https://ipfs-api1-ethtaipei.vercel.app';
+    const response = await fetch(`${backendUrl}/api/authentica`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        action: 'verify',
         providerId,
         hash,
         hashKey,
@@ -50,14 +51,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      result: {
-        isHumanWritten: data.isHumanWritten,
-        confidenceScore: data.confidenceScore,
-        provider: data.provider,
-        chain: data.chain,
-        hash: data.hash,
-        hashKey: data.hashKey
-      }
+      result: data.result
     });
   } catch (error) {
     console.error('Error verifying content:', error);
