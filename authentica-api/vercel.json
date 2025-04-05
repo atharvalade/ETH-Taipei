@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/authentica(.*)",
-      "dest": "/api/authentica.js"
+      "source": "/api/authentica(.*)",
+      "destination": "/api/authentica.js"
     }
   ],
   "functions": {
