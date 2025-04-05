@@ -126,8 +126,11 @@ export default function VerifyPage() {
       // Use default wallet address if not available from MiniKit
       const userWalletAddress = walletAddress || '0xDefaultWalletAddress';
       
+      // Get the API URL from environment variables, fallback to relative URL for local dev
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+      
       // Step 1: Store the content in IPFS through our backend
-      const storeResponse = await fetch('/api/submit-content', {
+      const storeResponse = await fetch(`${apiUrl}/submit-content`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -63,7 +63,9 @@ export default function ProfilePage() {
   // Fetch user data from API
   const fetchUserData = async (walletAddress: string) => {
     try {
-      const response = await fetch(`/api/user?walletAddress=${walletAddress}`);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+      
+      const response = await fetch(`${apiUrl}/user?walletAddress=${walletAddress}`);
       const data = await response.json();
       
       if (data) {
@@ -101,7 +103,9 @@ export default function ProfilePage() {
       
       if (finalPayload.status === 'success') {
         // Verify the proof in the backend
-        const verifyResponse = await fetch('/api/verify', {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+        
+        const verifyResponse = await fetch(`${apiUrl}/verify`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

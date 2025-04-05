@@ -36,9 +36,9 @@ const providerData = {
 export default function ResultPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const id = searchParams.get('id');
-  const hash = searchParams.get('hash');
-  const hashKey = searchParams.get('hashKey');
+  const id = searchParams?.get('id') || '';
+  const hash = searchParams?.get('hash') || '';
+  const hashKey = searchParams?.get('hashKey') || '';
   
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -67,7 +67,9 @@ export default function ResultPage() {
       
       try {
         // Make API call to verify content
-        const response = await fetch('/api/verify-content', {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+        
+        const response = await fetch(`${apiUrl}/verify-content`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -149,7 +151,9 @@ export default function ResultPage() {
       // Update the NFT token ID in the backend
       if (hash) {
         try {
-          await fetch('/api/update-nft', {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+          
+          await fetch(`${apiUrl}/update-nft`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
