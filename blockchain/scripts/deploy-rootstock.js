@@ -14,9 +14,6 @@ async function main() {
   const HYPERLANE_MAILBOX_ADDRESS = "0x..." // Replace with actual mailbox address from Hyperlane deployment
   const WORLD_CHAIN_DOMAIN = 1337; // Hyperlane domain ID for World Chain - update with actual value
   
-  // Payment wallet address - where payments will be forwarded
-  const PAYMENT_WALLET_ADDRESS = "0xa20C96EA7B9AbAe32217EbA25577cDe099039D5D";
-  
   // Convert the World Chain contract address to bytes32 format
   // This will be the address of the deployed WorldChainPaymentVerifier contract
   const WORLD_CHAIN_CONTRACT_ADDRESS = "0x..." // Replace with actual deployed World Chain contract address
@@ -26,8 +23,7 @@ async function main() {
   const paymentReceiver = await RootstockPaymentReceiver.deploy(
     HYPERLANE_MAILBOX_ADDRESS,
     WORLD_CHAIN_DOMAIN,
-    WORLD_CHAIN_CONTRACT_BYTES32,
-    PAYMENT_WALLET_ADDRESS
+    WORLD_CHAIN_CONTRACT_BYTES32
   );
 
   // Wait for deployment to complete
@@ -37,8 +33,7 @@ async function main() {
   console.log(`Hyperlane Mailbox: ${HYPERLANE_MAILBOX_ADDRESS}`);
   console.log(`World Chain Domain: ${WORLD_CHAIN_DOMAIN}`);
   console.log(`World Chain Contract (bytes32): ${WORLD_CHAIN_CONTRACT_BYTES32}`);
-  console.log(`Payment Wallet: ${PAYMENT_WALLET_ADDRESS}`);
-  console.log(`Verification price set to: 0.00001 rBTC`);
+  console.log(`Verification price set to: 0.001 rBTC`);
   
   console.log("Deployment complete!");
   
@@ -50,8 +45,6 @@ async function main() {
     hyperlaneMailbox: HYPERLANE_MAILBOX_ADDRESS,
     worldChainDomain: WORLD_CHAIN_DOMAIN,
     worldChainContract: WORLD_CHAIN_CONTRACT_ADDRESS,
-    paymentWallet: PAYMENT_WALLET_ADDRESS,
-    verificationPrice: "0.00001",
     timestamp: new Date().toISOString()
   };
   

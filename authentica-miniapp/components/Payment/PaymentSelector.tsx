@@ -190,7 +190,7 @@ export default function PaymentSelector({
         <RootstockPayment
           providerId={providerId}
           providerName={providerName}
-          price={0.001} // Fixed at 0.001 rBTC
+          price={0.00001} // Fixed at 0.00001 rBTC
           walletAddress={walletAddress}
           onPaymentSuccess={onPaymentSuccess}
           onPaymentError={onPaymentError}

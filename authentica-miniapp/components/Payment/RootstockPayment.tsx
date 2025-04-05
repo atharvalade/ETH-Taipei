@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 interface RootstockPaymentProps {
   providerId: string;
   providerName: string;
-  price: number; // Price is fixed at 0.001 rBTC
+  price: number; // Price is fixed at 0.00001 rBTC
   walletAddress: string;
   onPaymentSuccess: (_txHash: string, _referenceId: string) => void;
   onPaymentError: (_error: string) => void;
@@ -28,8 +28,14 @@ export default function RootstockPayment({
   const [deepLink, setDeepLink] = useState<string>("");
   const [showQR, setShowQR] = useState(false);
   
-  // Fixed contract address for the Rootstock payment receiver
-  const ROOTSTOCK_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_ROOTSTOCK_CONTRACT_ADDRESS || "0x...";
+  // Fixed payment wallet address
+  const PAYMENT_WALLET_ADDRESS = process.env.NEXT_PUBLIC_PAYMENT_WALLET_ADDRESS || "0xa20C96EA7B9AbAe32217EbA25577cDe099039D5D";
+  
+  // Contract address (optional - for when contract exists)
+  const ROOTSTOCK_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_ROOTSTOCK_CONTRACT_ADDRESS;
+  
+  // Payment amount in rBTC - fixed at 0.00001 rBTC
+  const PAYMENT_AMOUNT = 0.00001;
   
   // Get provider name for display
   const formattedProviderName = providerName || "Provider";
@@ -107,8 +113,11 @@ export default function RootstockPayment({
       const { id: newReferenceId } = await initiateResponse.json();
       setReferenceId(newReferenceId);
       
-      // Generate deep link for MetaMask
-      const link = generateMetaMaskDeepLink(walletAddress, newReferenceId);
+      // Generate deep link for MetaMask - determine which type of payment to use
+      const link = ROOTSTOCK_CONTRACT_ADDRESS ? 
+        generateContractDeepLink(walletAddress, newReferenceId) : 
+        generateDirectPaymentDeepLink(newReferenceId);
+      
       setDeepLink(link);
       
     } catch (error: any) {
@@ -120,8 +129,34 @@ export default function RootstockPayment({
     }
   };
   
-  // Generate a deep link for MetaMask mobile
-  const generateMetaMaskDeepLink = (userAddress: string, refId: string): string => {
+  // Generate a deep link for direct payment to wallet
+  const generateDirectPaymentDeepLink = (refId: string): string => {
+    // Create a memo with reference ID
+    const memo = `Authentica-${refId}`;
+    
+    // Create transaction parameters - direct transfer to payment wallet
+    const txParams = {
+      to: PAYMENT_WALLET_ADDRESS,
+      value: (PAYMENT_AMOUNT * 1e18).toString(10), // Convert to wei
+      data: '0x', // No data for simple transfer
+      chainId: 31, // Rootstock testnet
+      memo: memo // Not all wallets support this, but worth including
+    };
+    
+    // Encode the transaction parameters as URL parameters
+    const encodedTx = encodeURIComponent(JSON.stringify(txParams));
+    
+    // Create the deep link URL
+    return `metamask://wc?uri=${encodedTx}`;
+  };
+  
+  // Generate a deep link for contract payment (when contract is available)
+  const generateContractDeepLink = (userAddress: string, refId: string): string => {
+    if (!ROOTSTOCK_CONTRACT_ADDRESS) {
+      // Fallback to direct payment if contract not available
+      return generateDirectPaymentDeepLink(refId);
+    }
+    
     // Function signature for payForVerification(address _userAddress, bytes32 _referenceId)
     const functionSignature = "0xb8170e5d"; // keccak256("payForVerification(address,bytes32)").slice(0, 10)
     
@@ -148,8 +183,7 @@ export default function RootstockPayment({
     // Create transaction parameters
     const txParams = {
       to: ROOTSTOCK_CONTRACT_ADDRESS,
-      from: userAddress, // This might be ignored by MetaMask
-      value: (0.001 * 1e18).toString(10), // 0.001 rBTC in wei (decimal string)
+      value: (PAYMENT_AMOUNT * 1e18).toString(10), // 0.00001 rBTC in wei (decimal string)
       data: data,
       chainId: 31, // Rootstock testnet
     };
@@ -184,7 +218,7 @@ export default function RootstockPayment({
       
       <div className="mb-4">
         <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">Amount:</p>
-        <p className="font-medium text-lg">0.001 rBTC</p>
+        <p className="font-medium text-lg">{PAYMENT_AMOUNT} rBTC</p>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
           For verification by {formattedProviderName}
         </p>
@@ -193,7 +227,7 @@ export default function RootstockPayment({
       <div className="mb-4">
         <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">Payment to:</p>
         <p className="text-xs font-mono bg-gray-50 dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 overflow-x-auto">
-          {ROOTSTOCK_CONTRACT_ADDRESS}
+          {PAYMENT_WALLET_ADDRESS}
         </p>
       </div>
       

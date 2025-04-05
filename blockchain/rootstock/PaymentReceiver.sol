@@ -9,10 +9,7 @@ import {IHyperlaneMailbox} from "./interfaces/IHyperlaneMailbox.sol";
  */
 contract RootstockPaymentReceiver {
     // Constants
-    uint256 public constant VERIFICATION_PRICE = 0.00001 ether; // 0.00001 rBTC for testnet
-    
-    // Payment wallet address
-    address public paymentWallet;
+    uint256 public constant VERIFICATION_PRICE = 0.001 ether; // 0.001 rBTC for testnet
     
     // Hyperlane mailbox interface
     IHyperlaneMailbox public mailbox;
@@ -27,20 +24,17 @@ contract RootstockPaymentReceiver {
     // Events
     event PaymentReceived(address indexed sender, uint256 amount, bytes32 paymentId);
     event MessageSent(address indexed sender, bytes32 paymentId, uint32 destinationDomain, bytes32 messageId);
-    event FallbackProcessActivated(bytes32 paymentId, address userAddress, string reason);
     
     /**
      * @dev Constructor sets up the Hyperlane mailbox and World Chain contract details
      * @param _mailbox Hyperlane mailbox address on Rootstock
      * @param _worldChainDomain Hyperlane domain ID for World Chain
      * @param _worldChainContract Contract address on World Chain to receive messages (as bytes32)
-     * @param _paymentWallet Wallet address to receive payments
      */
-    constructor(address _mailbox, uint32 _worldChainDomain, bytes32 _worldChainContract, address _paymentWallet) {
+    constructor(address _mailbox, uint32 _worldChainDomain, bytes32 _worldChainContract) {
         mailbox = IHyperlaneMailbox(_mailbox);
         worldChainDomain = _worldChainDomain;
         worldChainContract = _worldChainContract;
-        paymentWallet = _paymentWallet;
     }
     
     /**
@@ -57,10 +51,6 @@ contract RootstockPaymentReceiver {
         // Store payment record
         payments[paymentId] = true;
         
-        // Forward payment to payment wallet
-        (bool sent, ) = paymentWallet.call{value: msg.value}("");
-        require(sent, "Failed to forward payment");
-        
         // Emit payment event
         emit PaymentReceived(msg.sender, msg.value, paymentId);
         
@@ -72,34 +62,28 @@ contract RootstockPaymentReceiver {
             block.timestamp
         );
         
-        try {
-            // Quote fee for sending message
-            uint256 messageFee = mailbox.quoteDispatch(
-                worldChainDomain,
-                worldChainContract,
-                payload
-            );
-            
-            // Send the message via Hyperlane
-            bytes32 messageId = mailbox.dispatch{value: 0}(
-                worldChainDomain,
-                worldChainContract,
-                payload
-            );
-            
-            // Emit message sent event
-            emit MessageSent(msg.sender, paymentId, worldChainDomain, messageId);
-        } catch {
-            // If Hyperlane integration fails, emit fallback event
-            emit FallbackProcessActivated(paymentId, _userAddress, "Hyperlane message sending failed");
-        }
+        // Quote fee for sending message
+        uint256 messageFee = mailbox.quoteDispatch(
+            worldChainDomain,
+            worldChainContract,
+            payload
+        );
+        
+        // Send the message via Hyperlane
+        bytes32 messageId = mailbox.dispatch{value: messageFee}(
+            worldChainDomain,
+            worldChainContract,
+            payload
+        );
+        
+        // Emit message sent event
+        emit MessageSent(msg.sender, paymentId, worldChainDomain, messageId);
     }
     
     /**
-     * @dev Function to update the payment wallet address (admin only)
-     * @param _newPaymentWallet New payment wallet address
+     * @dev Admin function to withdraw funds
      */
-    function updatePaymentWallet(address _newPaymentWallet) external {
-        paymentWallet = _newPaymentWallet;
+    function withdraw() external {
+        payable(msg.sender).transfer(address(this).balance);
     }
 } 

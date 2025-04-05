@@ -2,6 +2,8 @@ require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "0x0000000000000000000000000000000000000000000000000000000000000000";
+const ROOTSTOCK_RPC_URL = process.env.ROOTSTOCK_RPC_URL || "https://public-node.testnet.rsk.co";
+const WORLD_CHAIN_RPC_URL = process.env.WORLD_CHAIN_RPC_URL || "https://testnet-rpc.worldchain.cool";
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -17,20 +19,31 @@ module.exports = {
   networks: {
     // Rootstock Testnet
     "rootstock-testnet": {
-      url: "https://public-node.testnet.rsk.co",
+      url: ROOTSTOCK_RPC_URL,
       chainId: 31,
-      accounts: [PRIVATE_KEY]
+      accounts: [PRIVATE_KEY],
+      gasMultiplier: 1.2, // Add a little extra gas for Rootstock
+      timeout: 60000
     },
-    // World Chain Testnet (placeholder - update with actual URL when available)
+    // World Chain Testnet
     "worldchain-testnet": {
-      url: "https://testnet-rpc.worldchain.cool", // Placeholder URL - update with actual World Chain testnet RPC
-      chainId: 1337, // Placeholder chainId - update with actual World Chain testnet chainId
-      accounts: [PRIVATE_KEY]
+      url: WORLD_CHAIN_RPC_URL,
+      chainId: 1337, // Update with actual World Chain testnet chainId when available
+      accounts: [PRIVATE_KEY],
+      timeout: 60000
     }
   },
   paths: {
     sources: "./",
     artifacts: "./artifacts",
     cache: "./cache"
+  },
+  // Add Etherscan API key for verification if available
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY
+  },
+  // Increase mocha timeout for tests
+  mocha: {
+    timeout: 60000
   }
 }; 

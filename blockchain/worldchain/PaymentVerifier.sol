@@ -24,7 +24,6 @@ contract WorldChainPaymentVerifier is IHyperlaneReceiver {
     // Events
     event PaymentVerified(bytes32 indexed paymentId, address indexed userAddress, uint256 amount, uint256 timestamp);
     event ServiceExecuted(bytes32 indexed paymentId, address indexed userAddress);
-    event FallbackVerification(bytes32 indexed paymentId, address indexed userAddress, string txHash);
     
     /**
      * @dev Modifier to restrict access to the Hyperlane mailbox
@@ -86,26 +85,6 @@ contract WorldChainPaymentVerifier is IHyperlaneReceiver {
         
         // Execute the service
         executeService(paymentId, userAddress);
-    }
-    
-    /**
-     * @dev Fallback verification function for when Hyperlane fails
-     * @param _paymentId Payment ID to verify
-     * @param _userAddress User address to receive the service
-     * @param _txHash Transaction hash of the Rootstock payment for reference
-     */
-    function fallbackVerify(bytes32 _paymentId, address _userAddress, string calldata _txHash) external onlyAdmin {
-        // Verify the payment hasn't been processed before
-        require(!verifiedPayments[_paymentId], "Payment already verified");
-        
-        // Mark as verified
-        verifiedPayments[_paymentId] = true;
-        
-        // Emit fallback verification event
-        emit FallbackVerification(_paymentId, _userAddress, _txHash);
-        
-        // Execute the service
-        executeService(_paymentId, _userAddress);
     }
     
     /**
