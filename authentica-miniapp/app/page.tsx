@@ -5,17 +5,27 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { MiniKit } from "@worldcoin/minikit-js";
+import { WalletAuth } from "@/components/WalletAuth";
 
 export default function Home() {
   const router = useRouter();
   const [isSignedIn, setIsSignedIn] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
   
   useEffect(() => {
     // Check if user is in World App and signed in
     const isInWorldApp = MiniKit.isInstalled();
-    // For MVP we're assuming the user is signed in if in World App
+    
     if (isInWorldApp) {
-      setIsSignedIn(true);
+      // Check if user has connected wallet
+      if (MiniKit.walletAddress) {
+        setIsSignedIn(true);
+      }
+      
+      // Get username if available
+      if (MiniKit.user?.username) {
+        setUsername(MiniKit.user.username);
+      }
     }
   }, []);
   
@@ -132,14 +142,24 @@ export default function Home() {
         transition={{ duration: 0.5, delay: 0.6 }}
         className="text-center"
       >
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => router.push('/providers')}
-          className="bg-primary text-white w-full py-4 rounded-full font-medium text-lg shadow-lg hover:shadow-primary/20 active:scale-[0.98] transition-all"
-        >
-          Get Started
-        </motion.button>
+        {isSignedIn ? (
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => router.push('/providers')}
+            className="bg-primary text-white w-full py-4 rounded-full font-medium text-lg shadow-lg hover:shadow-primary/20 active:scale-[0.98] transition-all"
+          >
+            Browse Providers
+          </motion.button>
+        ) : (
+          <WalletAuth />
+        )}
+        
+        {username && (
+          <p className="mt-4 text-sm text-gray-500">
+            Welcome back, {username}!
+          </p>
+        )}
         
         <div className="flex justify-center mt-6">
           <Image

@@ -6,44 +6,66 @@ import { motion } from "framer-motion";
 import { MiniKit, VerificationLevel } from "@worldcoin/minikit-js";
 import Image from "next/image";
 
-// Mock user data
-const mockUser = {
-  username: "user_worldapp",
-  avatar: null,
-  totalVerifications: 12,
-  nftCertificates: [
-    {
-      id: "AUTH-123456",
-      date: "2023-04-01",
-      provider: "RealText Systems",
-      chain: "WORLD",
-    },
-    {
-      id: "AUTH-789012",
-      date: "2023-03-15",
-      provider: "VerifyAI Labs",
-      chain: "WORLD",
-    },
-    {
-      id: "AUTH-345678",
-      date: "2023-02-10",
-      provider: "TrueContent",
-      chain: "ROOTSTOCK",
-    }
-  ]
-};
+// Mock NFT certificates for demo
+const mockNFTCertificates = [
+  {
+    id: "AUTH-123456",
+    date: "2023-04-01",
+    provider: "RealText Systems",
+    chain: "WORLD",
+  },
+  {
+    id: "AUTH-789012",
+    date: "2023-03-15",
+    provider: "VerifyAI Labs",
+    chain: "WORLD",
+  },
+  {
+    id: "AUTH-345678",
+    date: "2023-02-10",
+    provider: "TrueContent",
+    chain: "ROOTSTOCK",
+  }
+];
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [user, setUser] = useState(mockUser);
+  const [username, setUsername] = useState<string>("");
+  const [walletAddress, setWalletAddress] = useState<string>("");
   const [isWorldApp, setIsWorldApp] = useState(false);
+  const [totalVerifications, setTotalVerifications] = useState(0);
+  const [nftCertificates, setNftCertificates] = useState(mockNFTCertificates);
   
   useEffect(() => {
     // Check if user is in World App
-    setIsWorldApp(MiniKit.isInstalled());
+    const worldAppInstalled = MiniKit.isInstalled();
+    setIsWorldApp(worldAppInstalled);
     
-    // In a real app, we would fetch the user's actual data
+    // Get user data if in World App
+    if (worldAppInstalled) {
+      // Get username if available
+      if (MiniKit.user?.username) {
+        setUsername(MiniKit.user.username);
+      }
+      
+      // Get wallet address if available
+      if (MiniKit.walletAddress) {
+        setWalletAddress(MiniKit.walletAddress);
+        // Format for display: 0x1234...5678
+        setWalletAddress(formatWalletAddress(MiniKit.walletAddress));
+      }
+      
+      // In a real app, we would fetch verifications count and NFT data from our backend
+      // For demo, we'll set random verification count
+      setTotalVerifications(Math.floor(Math.random() * 10) + 5);
+    }
   }, []);
+  
+  // Format wallet address to show first 6 and last 4 characters
+  const formatWalletAddress = (address: string): string => {
+    if (!address) return "";
+    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+  };
   
   const handleWorldIdVerify = async () => {
     try {
@@ -87,12 +109,19 @@ export default function ProfilePage() {
       >
         <div className="flex items-center">
           <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white font-bold text-2xl mr-4">
-            {user.username.charAt(0).toUpperCase()}
+            {(username ? username.charAt(0) : "A").toUpperCase()}
           </div>
           <div>
-            <h2 className="font-semibold text-lg">{user.username}</h2>
-            <p className="text-sm text-gray-600">
-              {user.totalVerifications} Verifications
+            <h2 className="font-semibold text-lg">{username || "Anonymous User"}</h2>
+            
+            {walletAddress && (
+              <p className="text-sm text-gray-500">
+                {walletAddress}
+              </p>
+            )}
+            
+            <p className="text-sm text-gray-600 mt-1">
+              {totalVerifications} Verifications
             </p>
             
             {!isWorldApp && (
@@ -132,7 +161,7 @@ export default function ProfilePage() {
         <h3 className="font-semibold mb-3">Your NFT Certificates</h3>
         
         <div className="space-y-3">
-          {user.nftCertificates.map((nft, index) => (
+          {nftCertificates.map((nft, index) => (
             <motion.div
               key={nft.id}
               initial={{ opacity: 0, x: -20 }}
