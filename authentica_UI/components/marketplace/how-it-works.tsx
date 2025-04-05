@@ -112,10 +112,10 @@ export default function HowItWorks() {
 
       <div ref={sectionRef} className="relative pb-36 min-h-[1500px]">
         {/* Centered fixed-width container for better alignment */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1.5 flex flex-col items-center">
+        <div className="absolute left-0 right-0 mx-auto h-full" style={{ width: "1.5px" }}>
           {/* Animated vertical timeline line */}
           <motion.div 
-            className="absolute h-full w-1.5 bg-gray-200 rounded-full"
+            className="absolute h-full w-full bg-gray-200 rounded-full"
             style={{ 
               background: "linear-gradient(to bottom, #000, #666)",
               height: "100%"
@@ -125,10 +125,11 @@ export default function HowItWorks() {
         
         {/* Moving dot that animates between steps */}
         <motion.div 
-          className="absolute left-1/2 w-7 h-7 rounded-full bg-black z-20 shadow-lg"
+          className="absolute w-7 h-7 rounded-full bg-black z-20 shadow-lg"
           style={{ 
             top: `calc(${activeStep * 25}% + 7.5rem)`,
-            transform: 'translateX(-50%)', // Force precise centering
+            left: "50%",
+            marginLeft: "-3.5px",
             boxShadow: '0 0 20px rgba(0,0,0,0.3)'
           }}
           animate={{
@@ -262,13 +263,14 @@ export default function HowItWorks() {
               {/* Connecting dot */}
               <motion.div 
                 className={`
-                  absolute top-[7.5rem] left-1/2
+                  absolute top-[7.5rem]
                   w-7 h-7 rounded-full border-3 border-white
                   ${isActive ? 'bg-black' : 'bg-gray-300'}
                   transition-all duration-300 z-10
                 `}
                 style={{
-                  transform: 'translateX(-50%)' // Force precise centering
+                  left: "50%",
+                  marginLeft: "-3.5px"
                 }}
                 animate={isActive ? {
                   scale: [1, 1.3, 1],

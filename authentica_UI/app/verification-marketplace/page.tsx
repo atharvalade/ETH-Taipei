@@ -260,7 +260,7 @@ export default function VerificationMarketplace() {
       </section>
       
       {/* NFT Credentials */}
-      <section className="py-16 md:py-24 bg-black text-white">
+      <section className="py-10 md:py-16 bg-black text-white">
         <div className="container mx-auto px-4 max-w-6xl">
           <NFTCredential />
         </div>
