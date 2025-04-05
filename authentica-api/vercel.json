@@ -7,7 +7,7 @@
     }
   ],
   "functions": {
-    "api/authentica.js": {
+    "pages/api/authentica.js": {
       "memory": 1024,
       "maxDuration": 10
     }
