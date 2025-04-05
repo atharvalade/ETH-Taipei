@@ -3,6 +3,7 @@
 import { Github } from "@/components/shared/icons";
 import { nFormatter } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 interface HomeContentProps {
   stars: number;
@@ -51,11 +52,9 @@ export default function HomeContent({ stars, deployUrl }: HomeContentProps) {
         </p>
         
         <div className="flex flex-wrap items-center justify-center gap-4 mt-8">
-          <a
+          <Link
             className="flex items-center justify-center rounded-full border border-black bg-black px-6 py-2.5 text-sm font-medium text-white transition-all duration-300 hover:bg-white hover:text-black shadow-sm hover:shadow-md"
-            href={deployUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/verification-marketplace"
           >
             <svg
               className="h-4 w-4 mr-2"
@@ -72,7 +71,7 @@ export default function HomeContent({ stars, deployUrl }: HomeContentProps) {
               />
             </svg>
             Verification Marketplace
-          </a>
+          </Link>
           <a
             className="flex items-center justify-center rounded-full border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all duration-300 hover:border-gray-800 hover:shadow-md"
             href="https://github.com/Authentica/authentica"

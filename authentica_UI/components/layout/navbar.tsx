@@ -27,21 +27,30 @@ export default function NavBar() {
               />
             </div>
           </Link>
-          <a
-            href="https://world.org"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center rounded-full border border-gray-300 bg-white px-5 py-1.5 text-sm font-medium text-gray-800 shadow-sm transition-colors hover:border-gray-800 h-[40px] mt-1"
-          >
-            <span className="mr-2">Try on</span>
-            <Image 
-              src="/world_logo.svg"
-              alt="World logo"
-              width={70}
-              height={70}
-              priority
-            />
-          </a>
+          
+          <div className="flex items-center space-x-4">
+            <Link 
+              href="/verification-marketplace"
+              className="hidden sm:flex items-center text-gray-700 hover:text-gray-900 font-medium transition-colors"
+            >
+              Marketplace
+            </Link>
+            <a
+              href="https://world.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center rounded-full border border-gray-300 bg-white px-5 py-1.5 text-sm font-medium text-gray-800 shadow-sm transition-colors hover:border-gray-800 h-[40px] mt-1"
+            >
+              <span className="mr-2">Try on</span>
+              <Image 
+                src="/world_logo.svg"
+                alt="World logo"
+                width={70}
+                height={70}
+                priority
+              />
+            </a>
+          </div>
         </div>
       </div>
     </>
