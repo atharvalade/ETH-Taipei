@@ -60,18 +60,18 @@ export default function HomeContent({ stars, deployUrl }: HomeContentProps) {
             <svg
               className="h-4 w-4 mr-2"
               viewBox="0 0 24 24"
-              fill="currentColor"
+              fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                d="M12 4L20 20H4L12 4Z"
+                d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M9 12l2 2 4-4"
                 stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
             </svg>
-            Deploy to Vercel
+            Verification Marketplace
           </a>
           <a
             className="flex items-center justify-center rounded-full border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all duration-300 hover:border-gray-800 hover:shadow-md"
@@ -79,10 +79,22 @@ export default function HomeContent({ stars, deployUrl }: HomeContentProps) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Github className="h-4 w-4 mr-2" />
-            <span className="flex items-center">
-              Star on GitHub <span className="ml-1 font-semibold">{nFormatter(stars)}</span>
-            </span>
+            <svg
+              className="h-4 w-4 mr-2"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+            </svg>
+            Watermarking Solutions
           </a>
         </div>
       </div>
