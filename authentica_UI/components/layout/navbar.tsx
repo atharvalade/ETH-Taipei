@@ -17,14 +17,15 @@ export default function NavBar() {
         } z-30 transition-all duration-300`}
       >
         <div className="mx-5 flex h-16 w-full max-w-screen-xl items-center justify-between">
-          <Link href="/" className="flex items-center mt-1">
+          <Link href="/" className="flex items-center mt-1 relative">
             <div className="relative w-[160px] h-[40px]">
               <object 
                 data="/Authentica_SVG.svg" 
                 type="image/svg+xml"
-                className="w-full h-full"
+                className="w-full h-full pointer-events-none"
                 aria-label="Authentica logo"
               />
+              <div className="absolute inset-0 cursor-pointer" aria-hidden="true"></div>
             </div>
           </Link>
           
