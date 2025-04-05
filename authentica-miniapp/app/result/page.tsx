@@ -39,7 +39,14 @@ export default function ResultPage() {
   const id = searchParams?.get('id') || '';
   const hash = searchParams?.get('hash') || '';
   const hashKey = searchParams?.get('hashKey') || '';
-  const decodedHashKey = hashKey ? decodeURIComponent(hashKey) : '';
+  // Don't decode the hashKey - it was not manually encoded in the verify page
+  // Get the wallet address from the URL if available
+  const urlWalletAddress = searchParams?.get('wallet') || '';
+  
+  // Debug logging for hashKey issues
+  console.log('DEBUGGING HASHKEY:');
+  console.log('URL hashKey parameter:', hashKey);
+  console.log('URL wallet parameter:', urlWalletAddress);
   
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -52,11 +59,18 @@ export default function ResultPage() {
   // Load verification result
   useEffect(() => {
     // Check if MiniKit is available and get wallet address
-    if (MiniKit.isInstalled() && MiniKit.walletAddress) {
-      setWalletAddress(MiniKit.walletAddress);
-    } else {
-      setWalletAddress('0xDefaultWalletAddress');
+    let userWalletAddress = urlWalletAddress; // Prioritize URL wallet address
+    
+    if (!userWalletAddress && MiniKit.isInstalled() && MiniKit.walletAddress) {
+      userWalletAddress = MiniKit.walletAddress;
     }
+    
+    if (!userWalletAddress) {
+      userWalletAddress = '0xDefaultWalletAddress';
+    }
+    
+    setWalletAddress(userWalletAddress);
+    console.log('Using wallet address for verification:', userWalletAddress);
 
     if (!id || !hash || !hashKey) {
       router.push('/providers');
@@ -70,6 +84,13 @@ export default function ResultPage() {
         // Make API call to verify content
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
         
+        // Log details before API call
+        console.log('Verification API call details:');
+        console.log('- Provider ID:', 'provider1');
+        console.log('- Hash:', hash);
+        console.log('- HashKey:', hashKey);
+        console.log('- Wallet Address:', userWalletAddress);
+        
         const response = await fetch(`${apiUrl}/verify-content`, {
           method: 'POST',
           headers: {
@@ -78,11 +99,14 @@ export default function ResultPage() {
           body: JSON.stringify({
             providerId: 'provider1', // Default to provider1 for demo
             hash,
-            hashKey: decodedHashKey,
-            walletAddress: walletAddress || '0xDefaultWalletAddress',
+            hashKey,
+            walletAddress: userWalletAddress,
             chain: 'WORLD' // Default to WORLD for demo
           }),
         });
+        
+        // Log response status
+        console.log('API Response status:', response.status);
         
         if (!response.ok) {
           const errorData = await response.json();
@@ -130,7 +154,7 @@ export default function ResultPage() {
     };
     
     fetchResult();
-  }, [id, hash, hashKey, router, walletAddress, decodedHashKey]);
+  }, [id, hash, hashKey, router, walletAddress, urlWalletAddress]);
   
   const handleMintNft = async () => {
     if (!result || !result.isHumanWritten || result.confidenceScore < 0.95) {

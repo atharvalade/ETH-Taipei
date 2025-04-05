@@ -121,6 +121,7 @@ export default function VerifyPage() {
     try {
       // Use default wallet address if not available from MiniKit
       const userWalletAddress = walletAddress || '0xDefaultWalletAddress';
+      console.log('Using wallet address:', userWalletAddress);
       
       // Get the API URL from environment variables, fallback to relative URL for local dev
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
@@ -152,6 +153,11 @@ export default function VerifyPage() {
       const hash = storeData.hash;
       const hashKey = storeData.hashKey;
       
+      console.log('Content successfully stored:');
+      console.log('- Hash:', hash);
+      console.log('- HashKey:', hashKey);
+      console.log('- Wallet Address:', userWalletAddress);
+      
       // Generate a verification ID for tracking
       const mockVerificationId = `verify-${Math.random().toString(36).substring(2, 10)}`;
       
@@ -164,7 +170,13 @@ export default function VerifyPage() {
         
         // Navigate to results page with hash details
         setTimeout(() => {
-          router.push(`/result?id=${mockVerificationId}&hash=${hash}&hashKey=${encodeURIComponent(hashKey)}`);
+          const queryParams = new URLSearchParams();
+          queryParams.set('id', mockVerificationId);
+          queryParams.set('hash', hash);
+          queryParams.set('hashKey', hashKey); // Don't encode it here - Next.js will handle this
+          queryParams.set('wallet', userWalletAddress); // Pass the wallet address too
+          
+          router.push(`/result?${queryParams.toString()}`);
         }, 1000);
       } else {
         // For testing outside World App
@@ -172,7 +184,13 @@ export default function VerifyPage() {
         
         // Simulate verification without World App integration
         setTimeout(() => {
-          router.push(`/result?id=${mockVerificationId}&hash=${hash}&hashKey=${encodeURIComponent(hashKey)}`);
+          const queryParams = new URLSearchParams();
+          queryParams.set('id', mockVerificationId);
+          queryParams.set('hash', hash);
+          queryParams.set('hashKey', hashKey); // Don't encode it here - Next.js will handle this
+          queryParams.set('wallet', userWalletAddress); // Pass the wallet address too
+          
+          router.push(`/result?${queryParams.toString()}`);
         }, 1000);
       }
     } catch (error: any) {
