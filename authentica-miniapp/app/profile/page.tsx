@@ -286,7 +286,7 @@ export default function ProfilePage() {
             ))
           ) : (
             <div className="text-center p-6 bg-gray-50 rounded-lg border border-gray-100">
-              <p className="text-gray-500 text-sm">You don't have any certificates yet</p>
+              <p className="text-gray-500 text-sm">You don&apos;t have any certificates yet</p>
               <p className="text-primary text-xs mt-1">Get verified to receive your first certificate</p>
             </div>
           )}
