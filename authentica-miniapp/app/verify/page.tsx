@@ -161,6 +161,10 @@ export default function VerifyPage() {
       // Generate a verification ID for tracking
       const mockVerificationId = `verify-${Math.random().toString(36).substring(2, 10)}`;
       
+      // ULTRA SIMPLE URL APPROACH - just concatenate the values
+      // No encoding/decoding at all - keep it extremely simple
+      const url = `/result?id=${mockVerificationId}&hash=${hash}&hashKey=${hashKey}&wallet=${userWalletAddress}`;
+      
       // Check if MiniKit is available (running in World App)
       if (MiniKit.isInstalled()) {
         // We're in World App, let's start verification process
@@ -170,13 +174,7 @@ export default function VerifyPage() {
         
         // Navigate to results page with hash details
         setTimeout(() => {
-          const queryParams = new URLSearchParams();
-          queryParams.set('id', mockVerificationId);
-          queryParams.set('hash', hash);
-          queryParams.set('hashKey', hashKey); // Don't encode it here - Next.js will handle this
-          queryParams.set('wallet', userWalletAddress); // Pass the wallet address too
-          
-          router.push(`/result?${queryParams.toString()}`);
+          router.push(url);
         }, 1000);
       } else {
         // For testing outside World App
@@ -184,13 +182,7 @@ export default function VerifyPage() {
         
         // Simulate verification without World App integration
         setTimeout(() => {
-          const queryParams = new URLSearchParams();
-          queryParams.set('id', mockVerificationId);
-          queryParams.set('hash', hash);
-          queryParams.set('hashKey', hashKey); // Don't encode it here - Next.js will handle this
-          queryParams.set('wallet', userWalletAddress); // Pass the wallet address too
-          
-          router.push(`/result?${queryParams.toString()}`);
+          router.push(url);
         }, 1000);
       }
     } catch (error: any) {

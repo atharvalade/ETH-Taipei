@@ -39,14 +39,14 @@ export default function ResultPage() {
   const id = searchParams?.get('id') || '';
   const hash = searchParams?.get('hash') || '';
   const hashKey = searchParams?.get('hashKey') || '';
-  // Don't decode the hashKey - it was not manually encoded in the verify page
-  // Get the wallet address from the URL if available
   const urlWalletAddress = searchParams?.get('wallet') || '';
   
-  // Debug logging for hashKey issues
-  console.log('DEBUGGING HASHKEY:');
-  console.log('URL hashKey parameter:', hashKey);
-  console.log('URL wallet parameter:', urlWalletAddress);
+  // Debug logging
+  console.log('PARAMETERS FROM URL:');
+  console.log('- ID:', id);
+  console.log('- Hash:', hash);
+  console.log('- HashKey:', hashKey);
+  console.log('- Wallet:', urlWalletAddress);
   
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -58,8 +58,8 @@ export default function ResultPage() {
   
   // Load verification result
   useEffect(() => {
-    // Check if MiniKit is available and get wallet address
-    let userWalletAddress = urlWalletAddress; // Prioritize URL wallet address
+    // Use wallet address from URL parameter or fallback
+    let userWalletAddress = urlWalletAddress;
     
     if (!userWalletAddress && MiniKit.isInstalled() && MiniKit.walletAddress) {
       userWalletAddress = MiniKit.walletAddress;
@@ -84,25 +84,24 @@ export default function ResultPage() {
         // Make API call to verify content
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
         
-        // Log details before API call
-        console.log('Verification API call details:');
-        console.log('- Provider ID:', 'provider1');
-        console.log('- Hash:', hash);
-        console.log('- HashKey:', hashKey);
-        console.log('- Wallet Address:', userWalletAddress);
+        // Log the exact request we're sending
+        const requestBody = {
+          providerId: 'provider1',
+          hash: hash,
+          hashKey: hashKey,
+          walletAddress: userWalletAddress,
+          chain: 'WORLD'
+        };
+        
+        console.log('Sending verification request:');
+        console.log(JSON.stringify(requestBody, null, 2));
         
         const response = await fetch(`${apiUrl}/verify-content`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            providerId: 'provider1', // Default to provider1 for demo
-            hash,
-            hashKey,
-            walletAddress: userWalletAddress,
-            chain: 'WORLD' // Default to WORLD for demo
-          }),
+          body: JSON.stringify(requestBody),
         });
         
         // Log response status
@@ -114,6 +113,7 @@ export default function ResultPage() {
         }
         
         const data = await response.json();
+        console.log('API Response data:', JSON.stringify(data, null, 2));
         
         if (!data.success) {
           throw new Error(data.error || 'Failed to verify content');
@@ -154,7 +154,7 @@ export default function ResultPage() {
     };
     
     fetchResult();
-  }, [id, hash, hashKey, router, walletAddress, urlWalletAddress]);
+  }, [id, hash, hashKey, router, urlWalletAddress]);
   
   const handleMintNft = async () => {
     if (!result || !result.isHumanWritten || result.confidenceScore < 0.95) {
