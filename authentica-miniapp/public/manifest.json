@@ -1,0 +1,25 @@
+{
+  "name": "Authentica",
+  "short_name": "Authentica",
+  "description": "AI Content verification marketplace using World chain for payments and NFT certification",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4F46E5",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "world_app": {
+    "required_permissions": ["verify", "pay", "sendTransaction"]
+  }
+} 
