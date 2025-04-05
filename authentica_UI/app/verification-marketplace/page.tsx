@@ -10,6 +10,8 @@ import NFTCredential from "../../components/marketplace/nft-credential";
 import CtaSection from "../../components/marketplace/cta-section";
 import ScrollToTop from "../../components/marketplace/scroll-to-top";
 import { useInView } from 'react-intersection-observer';
+import { motion } from 'framer-motion';
+import Image from "next/image";
 
 export default function VerificationMarketplace() {
   // This will contain visibility states for different sections
@@ -63,98 +65,135 @@ export default function VerificationMarketplace() {
           {/* Clean, minimalist grid layout */}
           <div className="grid grid-cols-6 grid-rows-2 gap-4 auto-rows-fr">
             {/* Verification Algorithms */}
-            <div className="col-span-6 md:col-span-3 row-span-1 p-8 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+            <div className="col-span-6 md:col-span-3 row-span-1">
+              <FeatureCard
+                title="Verification Algorithms"
+                description="Providers list their proprietary algorithms through APIs for verifying AI-generated content. Our marketplace creates healthy competition between providers."
+                colorAccent="bg-gradient-to-r from-indigo-600 to-blue-600"
+                icon={
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 2V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M8 2V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M10 16L12 14V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M3 9H21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M14 17C14 17 15 17 15 16C15 15 14 15 13 15C12 15 11 15 11 14C11 13 12 13 12 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-black">Verification Algorithms</h3>
-                  <p className="text-gray-600 mb-4">
-                    Providers list their proprietary algorithms through APIs for verifying AI-generated content. Our marketplace creates healthy competition between providers.
-                  </p>
-                  <a href="#" className="text-black inline-flex items-center border-b border-black pb-0.5">
-                    Learn more
-                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </a>
-                </div>
-              </div>
+                }
+                delay={0}
+              />
             </div>
             
             {/* Smart Accuracy Score */}
-            <div className="col-span-6 md:col-span-3 row-span-1 p-8 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            <div className="col-span-6 md:col-span-3 row-span-1">
+              <FeatureCard
+                title="Smart Accuracy Score"
+                description="Authentica automatically generates an accuracy score based on data set, executing smart contracts to assess the model."
+                colorAccent="bg-gradient-to-r from-emerald-600 to-cyan-600"
+                icon={
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="currentColor" strokeWidth="1.5"/>
+                    <path d="M15.5 9L11.5 13L9.5 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M7 17C7 17 8.5 16 12 16C15.5 16 17 17 17 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M12 5.5V8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M5.5 12H7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M19 12H16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-black">Smart Accuracy Score</h3>
-                  <p className="text-gray-600">
-                    Authentica automatically generates an accuracy score based on data set, executing smart contracts to assess the model.
-                  </p>
-                </div>
-              </div>
+                }
+                delay={1}
+              />
             </div>
             
             {/* Crypto Payments */}
-            <div className="col-span-6 md:col-span-2 row-span-1 p-8 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <div className="col-span-6 md:col-span-2 row-span-1">
+              <FeatureCard
+                title="Crypto Payments"
+                description="Payment is processed in crypto to pay for each verification request through Authentica."
+                colorAccent="bg-gradient-to-r from-amber-500 to-orange-500"
+                icon={
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="1.5"/>
+                    <path d="M15.5 9.5H10.5C9.67157 9.5 9 10.1716 9 11V11C9 11.8284 9.67157 12.5 10.5 12.5H13.5C14.3284 12.5 15 13.1716 15 14V14C15 14.8284 14.3284 15.5 13.5 15.5H8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M12 7.5V9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M12 15.5V17.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-black">Crypto Payments</h3>
-                  <p className="text-gray-600">
-                    Payment is processed in crypto to pay for each verification request through Authentica.
-                  </p>
-                </div>
-              </div>
+                }
+                delay={2}
+              />
             </div>
             
             {/* NFT Credentials */}
-            <div className="col-span-6 md:col-span-2 row-span-1 p-8 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+            <div className="col-span-6 md:col-span-2 row-span-1">
+              <FeatureCard
+                title="NFT Credentials"
+                description="Mint an NFT credential as proof of authenticity for human-created content."
+                colorAccent="bg-gradient-to-r from-purple-600 to-pink-600"
+                icon={
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 20.0001H21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M5 20.0001V11.0405C5 10.4883 5.29639 9.97359 5.78 9.66501L11.78 5.66501C12.3432 5.30156 13.0875 5.30156 13.6507 5.66501L19.6507 9.66501C20.1343 9.97359 20.4307 10.4883 20.4307 11.0405V20.0001" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M10 20V16C10 15.4477 10.4477 15 11 15H13C13.5523 15 14 15.4477 14 16V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M2 20.0001H22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-black">NFT Credentials</h3>
-                  <p className="text-gray-600">
-                    Mint an NFT credential as proof of authenticity for human-created content.
-                  </p>
-                </div>
-              </div>
+                }
+                delay={3}
+              />
             </div>
             
             {/* Cross-chain Technology */}
-            <div className="col-span-6 md:col-span-2 row-span-1 p-8 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            <div className="col-span-6 md:col-span-2 row-span-1">
+              <FeatureCard
+                title="Cross-chain Technology"
+                description="Powered by World App, Metal, and Rootstock for secure, transparent verification."
+                colorAccent="from-blue-500 to-indigo-600"
+                icon={
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 7H7C5.89543 7 5 7.89543 5 9V17C5 18.1046 5.89543 19 7 19H15C16.1046 19 17 18.1046 17 17V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M9 15H17C18.1046 15 19 14.1046 19 13V5C19 3.89543 18.1046 3 17 3H9C7.89543 3 7 3.89543 7 5V13C7 14.1046 7.89543 15 9 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-black">Cross-chain Technology</h3>
-                  <p className="text-gray-600">
-                    Powered by World App, Metal, and Rootstock for secure, transparent verification.
-                  </p>
-                </div>
-                <div className="flex gap-1 ml-auto">
-                  <img src="/images/world-logo.png" alt="World" className="w-6 h-6 rounded-full object-cover border border-gray-100" />
-                  <img src="/images/metal-logo.png" alt="Metal" className="w-6 h-6 rounded-full object-cover border border-gray-100" />
-                  <img src="/images/rootstock-logo.png" alt="Rootstock" className="w-6 h-6 rounded-full object-cover border border-gray-100" />
-                </div>
+                }
+                delay={4}
+              />
+              
+              <div className="mt-4 flex items-center gap-3 justify-center">
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  className="transition-transform"
+                >
+                  <Image
+                    src="/world_logo.svg"
+                    alt="World App"
+                    width={48}
+                    height={32}
+                    className="w-12 h-8 bg-white p-1 border border-gray-100 shadow-sm object-contain"
+                  />
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  className="transition-transform"
+                >
+                  <Image
+                    src="/metal-logo.svg"
+                    alt="Metal"
+                    width={48}
+                    height={32}
+                    className="w-12 h-8 bg-white p-1 border border-gray-100 shadow-sm object-contain"
+                  />
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  className="transition-transform"
+                >
+                  <Image
+                    src="/rootstock-logo.png"
+                    alt="Rootstock"
+                    width={48}
+                    height={32}
+                    className="w-12 h-8 bg-white p-1 border border-gray-100 shadow-sm object-contain"
+                  />
+                </motion.div>
               </div>
             </div>
           </div>
