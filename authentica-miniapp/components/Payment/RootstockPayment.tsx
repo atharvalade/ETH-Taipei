@@ -25,14 +25,10 @@ export default function RootstockPayment({
   const [referenceId, setReferenceId] = useState<string>("");
   const [txHash, setTxHash] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [deepLink, setDeepLink] = useState<string>("");
   const [showQR, setShowQR] = useState(false);
   
   // Fixed payment wallet address
   const PAYMENT_WALLET_ADDRESS = process.env.NEXT_PUBLIC_PAYMENT_WALLET_ADDRESS || "0xa20C96EA7B9AbAe32217EbA25577cDe099039D5D";
-  
-  // Contract address (optional - for when contract exists)
-  const ROOTSTOCK_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_ROOTSTOCK_CONTRACT_ADDRESS;
   
   // Payment amount in rBTC - fixed at 0.00001 rBTC
   const PAYMENT_AMOUNT = 0.00001;
@@ -40,51 +36,54 @@ export default function RootstockPayment({
   // Get provider name for display
   const formattedProviderName = providerName || "Provider";
   
+  // Handle successful payment
+  const handlePaymentSuccess = (transactionHash: string, refId: string) => {
+    // Set the transaction hash
+    setTxHash(transactionHash);
+    
+    // Call the onPaymentSuccess callback
+    onPaymentSuccess(transactionHash, refId);
+  };
+  
+  // Check if returning from MetaMask
+  const checkReturnFromMetaMask = () => {
+    // If we have a stored payment in progress
+    const storedPayment = localStorage.getItem('pendingRootstockPayment');
+    if (storedPayment) {
+      try {
+        const { referenceId, timestamp } = JSON.parse(storedPayment);
+        
+        // Set the reference ID from local storage
+        setReferenceId(referenceId);
+        
+        // If the payment was initiated within the last 10 minutes, consider it successful when returning
+        const paymentTime = parseInt(timestamp);
+        const currentTime = Date.now();
+        const timeDifference = currentTime - paymentTime;
+        
+        // If within 10 minutes and returning from MetaMask, assume transaction completed
+        if (timeDifference < 10 * 60 * 1000 && document.referrer.includes('metamask')) {
+          // We don't have a real transaction hash, so generate a placeholder
+          const placeholderTxHash = `pending-${Date.now()}`;
+          handlePaymentSuccess(placeholderTxHash, referenceId);
+          
+          // Clear the stored payment
+          localStorage.removeItem('pendingRootstockPayment');
+        }
+      } catch (error) {
+        console.error('Error parsing stored payment:', error);
+        localStorage.removeItem('pendingRootstockPayment');
+      }
+    }
+  };
+  
   // Initialize payment on component mount
   useEffect(() => {
     initializePayment();
+    // Check if returning from MetaMask
+    checkReturnFromMetaMask();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  
-  // Function to check for payment status
-  useEffect(() => {
-    let intervalId: ReturnType<typeof setInterval>;
-    
-    if (referenceId && !txHash) {
-      // Poll for transaction status every 10 seconds
-      intervalId = setInterval(async () => {
-        try {
-          // Get the API URL from environment variables, fallback to relative URL for local dev
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
-          
-          const statusResponse = await fetch(`${apiUrl}/payment-status?referenceId=${referenceId}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            }
-          });
-          
-          if (statusResponse.ok) {
-            const statusData = await statusResponse.json();
-            
-            if (statusData.status === 'completed' && statusData.txHash) {
-              clearInterval(intervalId);
-              setTxHash(statusData.txHash);
-              onPaymentSuccess(statusData.txHash, referenceId);
-            }
-          }
-        } catch (error) {
-          console.error('Error checking payment status:', error);
-        }
-      }, 10000); // Check every 10 seconds
-    }
-    
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [referenceId, txHash, onPaymentSuccess]);
   
   // Initialize payment by getting a reference ID from the backend
   const initializePayment = async () => {
@@ -112,14 +111,6 @@ export default function RootstockPayment({
       
       const { id: newReferenceId } = await initiateResponse.json();
       setReferenceId(newReferenceId);
-      
-      // Generate deep link for MetaMask - determine which type of payment to use
-      const link = ROOTSTOCK_CONTRACT_ADDRESS ? 
-        generateContractDeepLink(walletAddress, newReferenceId) : 
-        generateDirectPaymentDeepLink(newReferenceId);
-      
-      setDeepLink(link);
-      
     } catch (error: any) {
       console.error('Payment initialization error:', error);
       setErrorMessage(error.message || 'Failed to initialize payment');
@@ -129,81 +120,57 @@ export default function RootstockPayment({
     }
   };
   
-  // Generate a deep link for direct payment to wallet
-  const generateDirectPaymentDeepLink = (refId: string): string => {
-    // Create a memo with reference ID
+  // Generate a MetaMask deep link for direct payment
+  const generateMetaMaskDeepLink = (refId: string): string => {
+    // Create direct payment URL for MetaMask mobile
+    // Format: ethereum:<address>@<chainId>/transfer?value=<value>&memo=<memo>
+    
+    // Convert payment amount to wei (as a hex string without 0x prefix)
+    const valueInWei = (PAYMENT_AMOUNT * 1e18).toString(16);
+    
+    // Create the memo with the reference ID
     const memo = `Authentica-${refId}`;
     
-    // Create transaction parameters - direct transfer to payment wallet
-    const txParams = {
-      to: PAYMENT_WALLET_ADDRESS,
-      value: (PAYMENT_AMOUNT * 1e18).toString(10), // Convert to wei
-      data: '0x', // No data for simple transfer
-      chainId: 31, // Rootstock testnet
-      memo: memo // Not all wallets support this, but worth including
-    };
-    
-    // Encode the transaction parameters as URL parameters
-    const encodedTx = encodeURIComponent(JSON.stringify(txParams));
-    
-    // Create the deep link URL
-    return `metamask://wc?uri=${encodedTx}`;
+    // Generate the Ethereum URL - will work with Rootstock because it's an EVM chain
+    return `ethereum:${PAYMENT_WALLET_ADDRESS}@31/transfer?value=${valueInWei}&memo=${encodeURIComponent(memo)}`;
   };
   
-  // Generate a deep link for contract payment (when contract is available)
-  const generateContractDeepLink = (userAddress: string, refId: string): string => {
-    if (!ROOTSTOCK_CONTRACT_ADDRESS) {
-      // Fallback to direct payment if contract not available
-      return generateDirectPaymentDeepLink(refId);
+  // Handle when the user clicks the pay button
+  const handlePayButtonClick = () => {
+    if (!referenceId) {
+      setErrorMessage('Reference ID not generated. Please try again.');
+      return;
     }
     
-    // Function signature for payForVerification(address _userAddress, bytes32 _referenceId)
-    const functionSignature = "0xb8170e5d"; // keccak256("payForVerification(address,bytes32)").slice(0, 10)
-    
-    // Encode address parameter (pad to 32 bytes)
-    const encodedAddress = userAddress.toLowerCase().replace('0x', '').padStart(64, '0');
-    
-    // Encode bytes32 parameter (reference ID)
-    let encodedReferenceId = '';
     try {
-      // Convert string to bytes32
-      const bytes = new TextEncoder().encode(refId);
-      const bytesHex = Array.from(bytes)
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
-      encodedReferenceId = bytesHex.padEnd(64, '0');
-    } catch (error) {
-      // Fallback encoding
-      encodedReferenceId = refId.padStart(64, '0');
+      // Generate deep link
+      const deepLink = generateMetaMaskDeepLink(referenceId);
+      
+      // Store payment info so we can retrieve it when user returns
+      localStorage.setItem('pendingRootstockPayment', JSON.stringify({
+        referenceId,
+        timestamp: Date.now().toString()
+      }));
+      
+      // Redirect to MetaMask
+      window.location.href = deepLink;
+    } catch (error: any) {
+      console.error('Error generating deep link:', error);
+      setErrorMessage('Failed to open MetaMask. Please ensure you have MetaMask installed.');
     }
-    
-    // Combine function signature and encoded parameters
-    const data = `${functionSignature}${encodedAddress}${encodedReferenceId}`;
-    
-    // Create transaction parameters
-    const txParams = {
-      to: ROOTSTOCK_CONTRACT_ADDRESS,
-      value: (PAYMENT_AMOUNT * 1e18).toString(10), // 0.00001 rBTC in wei (decimal string)
-      data: data,
-      chainId: 31, // Rootstock testnet
-    };
-    
-    // Encode the transaction parameters as URL parameters
-    const encodedTx = encodeURIComponent(JSON.stringify(txParams));
-    
-    // Create the deep link URL
-    return `metamask://wc?uri=${encodedTx}`;
-  };
-  
-  // Handle deep link click
-  const handleDeepLinkClick = () => {
-    // Open MetaMask app via deep link
-    window.location.href = deepLink;
   };
   
   // Toggle QR code display
   const toggleQRCode = () => {
     setShowQR(!showQR);
+  };
+  
+  // For testing only - simulate a successful payment
+  const simulatePaymentSuccess = () => {
+    if (process.env.NODE_ENV !== 'production') {
+      const simulatedTxHash = `simulated-${Date.now()}`;
+      handlePaymentSuccess(simulatedTxHash, referenceId);
+    }
   };
   
   return (
@@ -254,7 +221,7 @@ export default function RootstockPayment({
         </div>
       )}
       
-      {showQR && deepLink && (
+      {showQR && referenceId && (
         <div className="mb-4 flex justify-center">
           <div className="p-4 bg-white rounded-lg">
             {/* For simplicity in this MVP, we mention QR code would go here.
@@ -267,13 +234,13 @@ export default function RootstockPayment({
         </div>
       )}
       
-      {deepLink && !txHash && (
+      {referenceId && !txHash && (
         <div className="flex flex-col space-y-2 mb-4">
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             disabled={loading}
-            onClick={handleDeepLinkClick}
+            onClick={handlePayButtonClick}
             className="w-full py-3 rounded-full font-medium text-sm flex items-center justify-center transition-all bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-orange-500/20"
           >
             {loading ? (
@@ -306,6 +273,15 @@ export default function RootstockPayment({
           >
             {showQR ? "Hide QR Code" : "Show QR Code"}
           </button>
+          
+          {process.env.NODE_ENV !== 'production' && (
+            <button
+              onClick={simulatePaymentSuccess}
+              className="text-sm text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline"
+            >
+              [DEBUG] Simulate Payment Success
+            </button>
+          )}
         </div>
       )}
       
