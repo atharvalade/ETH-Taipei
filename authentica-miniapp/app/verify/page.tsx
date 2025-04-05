@@ -107,7 +107,7 @@ export default function VerifyPage() {
     setPaymentToken(e.target.value as 'WLD' | 'USDC');
   };
   
-  const processPayment = async (userWalletAddress: string, hash: string, hashKey: string) => {
+  const processPayment = async (userWalletAddress: string) => {
     try {
       // Get the API URL from environment variables, fallback to relative URL for local dev
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
@@ -270,7 +270,7 @@ export default function VerifyPage() {
       // Step 2: Process payment if on World chain
       if (chain === 'WORLD') {
         try {
-          await processPayment(userWalletAddress, hash, hashKey);
+          await processPayment(userWalletAddress);
         } catch (paymentError: any) {
           throw new Error(`Payment failed: ${paymentError.message}`);
         }
