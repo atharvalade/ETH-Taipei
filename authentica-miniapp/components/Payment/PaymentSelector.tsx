@@ -12,8 +12,8 @@ interface PaymentSelectorProps {
   price: number;
   currency: string;
   walletAddress: string;
-  onPaymentSuccess: (txHash: string, referenceId: string) => void;
-  onPaymentError: (error: string) => void;
+  onPaymentSuccess: (_txHash: string, _referenceId: string) => void;
+  onPaymentError: (_error: string) => void;
 }
 
 export default function PaymentSelector({

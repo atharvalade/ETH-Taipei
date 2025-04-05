@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { MiniKit, tokenToDecimals, Tokens, PayCommandInput } from "@worldcoin/minikit-js";
+import { MiniKit } from "@worldcoin/minikit-js";
 import PaymentSelector from "@/components/Payment/PaymentSelector";
 
 // Mock data for providers (should match the data in providers/page.tsx)
@@ -80,13 +80,9 @@ export default function VerifyPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
-  const [paymentComplete, setPaymentComplete] = useState(false);
-  const [verificationComplete, setVerificationComplete] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string>('');
   const [storedContentHash, setStoredContentHash] = useState<string>('');
   const [storedHashKey, setStoredHashKey] = useState<string>('');
-  const [txHash, setTxHash] = useState<string>('');
-  const [paymentReferenceId, setPaymentReferenceId] = useState<string>('');
   
   // Load provider details and wallet address
   useEffect(() => {
@@ -109,12 +105,8 @@ export default function VerifyPage() {
     }
   }, [providerId, router]);
   
-  const handlePaymentSuccess = async (txHash: string, referenceId: string) => {
+  const handlePaymentSuccess = async (_txHash: string, _referenceId: string) => {
     try {
-      setTxHash(txHash);
-      setPaymentReferenceId(referenceId);
-      setPaymentComplete(true);
-      
       // Verify the content after successful payment
       if (storedContentHash && storedHashKey) {
         const verifyData = await verifyContent(storedContentHash, storedHashKey, walletAddress);
@@ -122,8 +114,6 @@ export default function VerifyPage() {
         if (!verifyData.success) {
           throw new Error('Verification failed');
         }
-        
-        setVerificationComplete(true);
         
         // Generate a verification ID for tracking
         const mockVerificationId = `verify-${Math.random().toString(36).substring(2, 10)}`;

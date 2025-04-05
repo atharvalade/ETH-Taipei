@@ -14,6 +14,7 @@ const WORLD_CHAIN_RPC_URL = process.env.WORLD_CHAIN_RPC_URL || "https://testnet-
 const WORLD_CHAIN_CONTRACT_ADDRESS = process.env.WORLD_CHAIN_CONTRACT_ADDRESS;
 const WEBHOOK_URL = process.env.WEBHOOK_URL || "https://authentica-api.vercel.app/api/hyperlane/payment-webhook";
 const WEBHOOK_API_KEY = process.env.HYPERLANE_WEBHOOK_API_KEY;
+const PAYMENT_STATUS_URL = process.env.PAYMENT_STATUS_URL || "https://authentica-api.vercel.app/api/payment-status";
 
 // ABI for the World Chain contract events we want to listen for
 const contractABI = [
@@ -38,6 +39,9 @@ async function startEventListener() {
     console.log(`  Amount: ${ethers.utils.formatEther(amount)} ETH`);
     console.log(`  Timestamp: ${new Date(timestamp.toNumber() * 1000).toISOString()}`);
     console.log(`  Transaction Hash: ${event.transactionHash}`);
+    
+    // Update payment status
+    await updatePaymentStatus(paymentId.toString(), event.transactionHash);
     
     // Forward event to webhook
     await forwardEventToWebhook({
@@ -74,6 +78,39 @@ async function startEventListener() {
   
   console.log("✅ Event listener started successfully");
   console.log("🔍 Waiting for events...");
+}
+
+// Function to update payment status via API
+async function updatePaymentStatus(paymentId, txHash) {
+  try {
+    // In a real implementation, we would also need to match reference IDs to payment IDs
+    // For simplicity, we're assuming payment ID can be used as reference ID
+    const referenceId = paymentId;
+    
+    console.log(`🔄 Updating payment status for reference ID: ${referenceId}`);
+    
+    const response = await axios.post(`${PAYMENT_STATUS_URL}/update`, {
+      referenceId,
+      txHash,
+      status: 'completed'
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${WEBHOOK_API_KEY}`
+      }
+    });
+    
+    if (response.status === 200) {
+      console.log(`✅ Successfully updated payment status for ${referenceId}`);
+    } else {
+      console.error(`❌ Failed to update payment status: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error('❌ Error updating payment status:', error.message);
+    if (error.response) {
+      console.error('Response:', error.response.data);
+    }
+  }
 }
 
 // Function to forward events to the API webhook
