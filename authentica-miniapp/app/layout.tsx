@@ -6,6 +6,7 @@ import MiniKitProvider from "@/components/minikit-provider";
 import MobileNav from "@/components/layout/mobile-nav";
 import dynamic from "next/dynamic";
 import NextAuthProvider from "@/components/next-auth-provider";
+import React from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 

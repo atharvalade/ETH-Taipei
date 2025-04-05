@@ -14,12 +14,6 @@ interface NFTCertificate {
   chain: string;
 }
 
-interface UserData {
-  verificationCount: number;
-  certificates: NFTCertificate[];
-  isVerified: boolean;
-}
-
 export default function ProfilePage() {
   const router = useRouter();
   const [username, setUsername] = useState<string>("");

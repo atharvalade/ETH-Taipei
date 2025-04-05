@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { MiniKit, MiniAppWalletAuthErrorPayload } from '@worldcoin/minikit-js';
+import { MiniKit } from '@worldcoin/minikit-js';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 
@@ -32,7 +32,7 @@ export const WalletAuth = () => {
       const res = await fetch(`/api/nonce`);
       const { nonce } = await res.json();
 
-      const { commandPayload: generateMessageResult, finalPayload } = await MiniKit.commandsAsync.walletAuth({
+      const { finalPayload } = await MiniKit.commandsAsync.walletAuth({
         nonce: nonce,
         requestId: crypto.randomUUID().substring(0, 8),
         expirationTime: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000),

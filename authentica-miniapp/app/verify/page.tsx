@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import Image from "next/image";
 import { MiniKit } from "@worldcoin/minikit-js";
 
 // Mock data for providers (should match the data in providers/page.tsx)
@@ -80,10 +79,7 @@ export default function VerifyPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [chain, setChain] = useState<'WORLD' | 'ROOTSTOCK'>('WORLD');
-  const [verificationId, setVerificationId] = useState<string | null>(null);
   const [walletAddress, setWalletAddress] = useState<string>('');
-  const [contentHash, setContentHash] = useState<string>('');
-  const [hashKey, setHashKey] = useState<string>('');
   
   // Load provider details and wallet address
   useEffect(() => {
@@ -155,12 +151,9 @@ export default function VerifyPage() {
       // Save hash and hashKey for verification
       const hash = storeData.hash;
       const hashKey = storeData.hashKey;
-      setContentHash(hash);
-      setHashKey(hashKey);
       
       // Generate a verification ID for tracking
       const mockVerificationId = `verify-${Math.random().toString(36).substring(2, 10)}`;
-      setVerificationId(mockVerificationId);
       
       // Check if MiniKit is available (running in World App)
       if (MiniKit.isInstalled()) {
