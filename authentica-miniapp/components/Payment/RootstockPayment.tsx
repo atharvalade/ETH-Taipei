@@ -121,18 +121,24 @@ export default function RootstockPayment({
   };
   
   // Generate a MetaMask deep link for direct payment
-  const generateMetaMaskDeepLink = (refId: string): string => {
-    // Create direct payment URL for MetaMask mobile
-    // Format: ethereum:<address>@<chainId>/transfer?value=<value>&memo=<memo>
+  const generateMetaMaskDeepLink = (_refId: string): string => {
+    // Format: ethereum:<address>@<chainId>/transfer?value=<value>
     
-    // Convert payment amount to wei (as a hex string without 0x prefix)
-    const valueInWei = (PAYMENT_AMOUNT * 1e18).toString(16);
+    // Convert payment amount to wei (as a hex string)
+    const valueInWei = Math.floor(PAYMENT_AMOUNT * 1e18);
     
-    // Create the memo with the reference ID
-    const memo = `Authentica-${refId}`;
+    // Generate the MetaMask deep link - for mobile
+    const mobileLink = `ethereum:${PAYMENT_WALLET_ADDRESS}@31/transfer?value=${valueInWei}`;
     
-    // Generate the Ethereum URL - will work with Rootstock because it's an EVM chain
-    return `ethereum:${PAYMENT_WALLET_ADDRESS}@31/transfer?value=${valueInWei}&memo=${encodeURIComponent(memo)}`;
+    // For desktop MetaMask use a more universal approach
+    const webLink = `https://metamask.app.link/send/${PAYMENT_WALLET_ADDRESS}?value=${valueInWei}`;
+    
+    // Use the mobile link if in mobile environment
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(
+      typeof navigator !== 'undefined' ? navigator.userAgent : ''
+    );
+    
+    return isMobile ? mobileLink : webLink;
   };
   
   // Handle when the user clicks the pay button
@@ -152,10 +158,23 @@ export default function RootstockPayment({
         timestamp: Date.now().toString()
       }));
       
-      // Redirect to MetaMask
-      window.location.href = deepLink;
+      console.log('Opening MetaMask with URL:', deepLink);
+      
+      // Use window.open which works better than location.href for deep links
+      window.open(deepLink, '_blank');
+      
+      // Fallback in case the deep link fails
+      setTimeout(() => {
+        // If we're still here after a short delay, the deep link might have failed
+        if (!document.hidden) {
+          // Show a fallback option
+          if (confirm('MetaMask app may not be installed. Open MetaMask website instead?')) {
+            window.open('https://metamask.io/download/', '_blank');
+          }
+        }
+      }, 1500);
     } catch (error: any) {
-      console.error('Error generating deep link:', error);
+      console.error('Error opening MetaMask:', error);
       setErrorMessage('Failed to open MetaMask. Please ensure you have MetaMask installed.');
     }
   };

@@ -232,6 +232,46 @@ export default function ResultPage() {
     }
   };
   
+  const handleMetaMaskPayment = () => {
+    // Wallet address is the same as used for verification
+    const receiverAddress = '0xa20C96EA7B9AbAe32217EbA25577cDe099039D5D';
+    
+    // Payment amount in rBTC (0.00001 ≈ $1)
+    const paymentAmount = 0.00001;
+    
+    // Convert to wei (as an integer)
+    const valueInWei = Math.floor(paymentAmount * 1e18);
+    
+    try {
+      console.log('Opening MetaMask for NFT payment...');
+      
+      // Generate the MetaMask deep link based on platform
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(
+        typeof navigator !== 'undefined' ? navigator.userAgent : ''
+      );
+      
+      // Create appropriate links for mobile vs desktop
+      const mobileLink = `ethereum:${receiverAddress}@31/transfer?value=${valueInWei}`;
+      const webLink = `https://metamask.app.link/send/${receiverAddress}?value=${valueInWei}`;
+      
+      const deepLink = isMobile ? mobileLink : webLink;
+      
+      // Use window.open which works better than location.href for deep links
+      window.open(deepLink, '_blank');
+      
+      // After a short timeout, if the user is still on the page, assume they want to proceed anyway
+      setTimeout(() => {
+        if (!document.hidden) {
+          handleMintNft();
+        }
+      }, 3000);
+    } catch (error) {
+      console.error('Error opening MetaMask:', error);
+      // Fall back to regular minting
+      handleMintNft();
+    }
+  };
+  
   if (loading) {
     return (
       <div className="relative z-10 container-mobile flex items-center justify-center min-h-[60vh]">
@@ -417,7 +457,7 @@ export default function ResultPage() {
             <label className="text-sm font-medium mb-1">Select Payment Method</label>
             <div className="flex space-x-2">
               <button
-                onClick={handleMintNft}
+                onClick={handleMetaMaskPayment}
                 disabled={mintingNft}
                 className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg flex items-center justify-center"
               >
