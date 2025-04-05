@@ -19,11 +19,22 @@ export interface VerificationResponse {
   error?: string;
 }
 
+// Get the API URL based on environment
+const getApiUrl = () => {
+  // In production, use the Vercel deployment URL
+  if (process.env.NEXT_PUBLIC_VERCEL_API_URL) {
+    return process.env.NEXT_PUBLIC_VERCEL_API_URL;
+  }
+  
+  // In development, use localhost
+  return process.env.BACKEND_API_URL || 'http://localhost:3001/api/authentica';
+};
+
 export async function submitContent(content: string, walletAddress: string): Promise<ContentSubmissionResponse> {
-  const apiUrl = process.env.NEXT_PUBLIC_VERCEL_API_URL || process.env.BACKEND_API_URL || 'http://localhost:3001';
+  const apiUrl = getApiUrl();
   
   try {
-    const response = await fetch(`${apiUrl}/store-content`, {
+    const response = await fetch(`${apiUrl}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -49,15 +60,22 @@ export async function verifyContent(
   walletAddress: string,
   chain: 'WORLD' | 'ROOTSTOCK'
 ): Promise<VerificationResponse> {
-  const apiUrl = process.env.NEXT_PUBLIC_VERCEL_API_URL || process.env.BACKEND_API_URL || 'http://localhost:3001';
+  const apiUrl = getApiUrl();
   
   try {
-    const response = await fetch(`${apiUrl}/verify`, {
+    const response = await fetch(`${apiUrl}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ providerId, hash, hashKey, walletAddress, chain }),
+      body: JSON.stringify({ 
+        action: 'verify',
+        providerId, 
+        hash, 
+        hashKey, 
+        walletAddress, 
+        chain 
+      }),
     });
 
     if (!response.ok) {
@@ -76,15 +94,20 @@ export async function updateNFTTokenId(
   hash: string,
   nftTokenId: string
 ): Promise<{ success: boolean; message?: string; error?: string }> {
-  const apiUrl = process.env.NEXT_PUBLIC_VERCEL_API_URL || process.env.BACKEND_API_URL || 'http://localhost:3001';
+  const apiUrl = getApiUrl();
   
   try {
-    const response = await fetch(`${apiUrl}/update-nft`, {
+    const response = await fetch(`${apiUrl}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ walletAddress, hash, nftTokenId }),
+      body: JSON.stringify({ 
+        action: 'update-nft',
+        walletAddress, 
+        hash, 
+        nftTokenId 
+      }),
     });
 
     if (!response.ok) {
@@ -101,10 +124,10 @@ export async function updateNFTTokenId(
 export async function getUserData(
   walletAddress: string
 ): Promise<{ success: boolean; walletAddress: string; verificationCount: number; transactions: any[]; error?: string }> {
-  const apiUrl = process.env.NEXT_PUBLIC_VERCEL_API_URL || process.env.BACKEND_API_URL || 'http://localhost:3001';
+  const apiUrl = getApiUrl();
   
   try {
-    const response = await fetch(`${apiUrl}/user/${walletAddress}`, {
+    const response = await fetch(`${apiUrl}?action=user&walletAddress=${walletAddress}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

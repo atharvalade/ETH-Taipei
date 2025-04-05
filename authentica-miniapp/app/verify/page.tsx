@@ -73,7 +73,7 @@ const mockProviders = [
 export default function VerifyPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const providerId = searchParams.get('providerId');
+  const providerId = searchParams?.get('providerId');
   
   const [provider, setProvider] = useState<any>(null);
   const [content, setContent] = useState('');
@@ -297,7 +297,7 @@ export default function VerifyPage() {
             className="w-full rounded-lg border border-gray-200 dark:border-gray-700 focus:border-blue-300 dark:focus:border-blue-500 bg-white dark:bg-gray-800 p-3 text-high-contrast placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all"
             placeholder="Paste the text you want to verify..."
           />
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Paste the content you want to verify for AI generation. The entire text will be analyzed by the provider's algorithms.</p>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Paste the content you want to verify for AI generation. The entire text will be analyzed by the provider&apos;s algorithms.</p>
         </div>
         
         <div>

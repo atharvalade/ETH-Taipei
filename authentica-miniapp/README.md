@@ -1,80 +1,139 @@
-# Authentica World Mini App
+# Authentica API
 
-Authentica is a verification marketplace that helps verify human-created content vs AI-generated content. Using the World App ecosystem, users can submit content for verification by various providers and receive NFT certificates for verified human-created content.
+A consolidated API for the Authentica verification marketplace. This API handles content storage on IPFS, AI verification, and NFT certification.
 
-## Features
+## API Endpoints
 
-- Multiple verification providers with different specialties and accuracy rates
-- Content verification with confidence scoring
-- Payment integration with World Chain (WRD/USDC) or BTC via Rootstock
-- NFT minting for verified human-created content
-- World App integration for identity verification and payments
+All operations are accessible through a single endpoint:
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js 16+ and npm/pnpm
-- World App account for testing
-
-### Installation
-
-1. Clone the repository
-2. Install dependencies:
-
-```bash
-pnpm install
+```
+https://your-vercel-deployment-url.vercel.app/api/authentica
 ```
 
-3. Create a `.env` file based on `.env.example`
-4. Run the development server:
+### Store Content
 
-```bash
-pnpm dev
+Stores content on IPFS and returns a hash and hash key for verification.
+
+**POST /api/authentica**
+
+```json
+{
+  "content": "Text content to verify",
+  "walletAddress": "0x123456789abcdef"
+}
 ```
 
-### Testing in World App
+**Response:**
 
-To test in the World App:
-
-1. Set up an ngrok tunnel to your local development server:
-
-```bash
-ngrok http 3000
+```json
+{
+  "success": true,
+  "hash": "QmHash...",
+  "hashKey": "hashKey123..."
+}
 ```
 
-2. Update your World Developer Portal app settings with the ngrok URL
-3. Update the `NEXTAUTH_URL` and redirect URL in `.env` to use your ngrok URL
-4. Open the URL in the World App by scanning the QR code from the Developer Portal
+### Verify Content
 
-## Tech Stack
+Verifies content using AI detection algorithms and returns a result.
 
-- Next.js 14
-- TypeScript
-- Tailwind CSS
-- Framer Motion for animations
-- World MiniKit for World App integration
+**POST /api/authentica**
 
-## World App Integration
+```json
+{
+  "action": "verify",
+  "providerId": "provider2",
+  "hash": "QmHash...",
+  "hashKey": "hashKey123...",
+  "walletAddress": "0x123456789abcdef",
+  "chain": "WORLD"
+}
+```
 
-This mini app integrates with the World App ecosystem through:
+**Response:**
 
-- World ID verification for identity
-- World Chain for payments
-- NFT minting capabilities
+```json
+{
+  "success": true,
+  "result": {
+    "isHumanWritten": true,
+    "confidenceScore": 0.87,
+    "provider": "provider2",
+    "chain": "WORLD",
+    "hash": "QmHash...",
+    "hashKey": "hashKey123..."
+  }
+}
+```
 
-## App Structure
+### Update NFT
 
-- `/app` - Next.js app pages
-- `/components` - Reusable components
-- `/public` - Static assets and manifest.json
+Links an NFT token ID to a verified content hash.
 
-## Development Notes
+**POST /api/authentica**
 
-- Mobile-first design optimized for World App
-- Uses event-based communication with World App for commands
-- Supports both in-app and web testing
+```json
+{
+  "action": "update-nft",
+  "hash": "QmHash...",
+  "walletAddress": "0x123456789abcdef",
+  "nftTokenId": "123456"
+}
+```
 
-## License
+**Response:**
 
-MIT
+```json
+{
+  "success": true,
+  "message": "NFT token ID updated successfully"
+}
+```
+
+### Get User Data
+
+Retrieves a user's transaction history and verification count.
+
+**GET /api/authentica?action=user&walletAddress=0x123456789abcdef**
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "walletAddress": "0x123456789abcdef",
+  "verificationCount": 1,
+  "transactions": [
+    {
+      "hash": "QmHash...",
+      "hashKey": "hashKey123...",
+      "timestamp": "2025-04-05T18:41:38.718Z",
+      "result": {
+        "isHumanWritten": true,
+        "confidenceScore": 0.87,
+        "provider": "provider2",
+        "chain": "WORLD"
+      },
+      "nftTokenId": "123456"
+    }
+  ]
+}
+```
+
+## Technologies
+
+- IPFS storage via Pinata
+- Next.js API routes
+- AI content verification algorithms
+
+## Environment Variables
+
+```
+PINATA_JWT=your_pinata_jwt_token
+```
+
+## Notes
+
+- All content is stored permanently on IPFS
+- Content verification is simulated using pattern detection algorithms
+- Real blockchain transactions require additional wallet integration
