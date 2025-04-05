@@ -1,0 +1,40 @@
+# Hyperlane Warp Route Configuration for Authentica
+# This file configures the bridge between Rootstock (RSK) and World Chain
+
+name: authentica-rbtc-bridge
+
+type: token
+
+domains:
+  # Rootstock Testnet
+  - name: rootstock
+    chainId: 31
+    rpcUrl: https://public-node.testnet.rsk.co
+
+  # World Chain Testnet (placeholder values - update with actual)
+  - name: worldchain
+    chainId: 1337
+    rpcUrl: https://testnet-rpc.worldchain.cool
+
+# Token configuration - we're bridging rBTC from Rootstock to World Chain
+tokens:
+  - name: rBTC
+    type: native
+    domain: rootstock
+    symbol: rBTC
+    decimals: 18
+
+# Route configuration
+routes:
+  - from: rootstock
+    to: worldchain
+    token: rBTC
+
+# Override fee configuration
+overrides:
+  # Destination gas amount for Hyperlane messages
+  gasAmounts:
+    rootstock:
+      worldchain: 200000
+    worldchain:
+      rootstock: 200000 

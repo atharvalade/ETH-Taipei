@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { MiniKit, tokenToDecimals, Tokens, PayCommandInput } from "@worldcoin/minikit-js";
+import PaymentSelector from "@/components/Payment/PaymentSelector";
 
 // Mock data for providers (should match the data in providers/page.tsx)
 const mockProviders = [
@@ -78,9 +79,14 @@ export default function VerifyPage() {
   const [content, setContent] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [chain, setChain] = useState<'WORLD' | 'ROOTSTOCK'>('WORLD');
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [paymentComplete, setPaymentComplete] = useState(false);
+  const [verificationComplete, setVerificationComplete] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string>('');
-  const [paymentToken, setPaymentToken] = useState<'WLD' | 'USDC'>('USDC');
+  const [storedContentHash, setStoredContentHash] = useState<string>('');
+  const [storedHashKey, setStoredHashKey] = useState<string>('');
+  const [txHash, setTxHash] = useState<string>('');
+  const [paymentReferenceId, setPaymentReferenceId] = useState<string>('');
   
   // Load provider details and wallet address
   useEffect(() => {
@@ -103,118 +109,38 @@ export default function VerifyPage() {
     }
   }, [providerId, router]);
   
-  const handleTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPaymentToken(e.target.value as 'WLD' | 'USDC');
-  };
-  
-  const processPayment = async (userWalletAddress: string) => {
+  const handlePaymentSuccess = async (txHash: string, referenceId: string) => {
     try {
-      // Get the API URL from environment variables, fallback to relative URL for local dev
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+      setTxHash(txHash);
+      setPaymentReferenceId(referenceId);
+      setPaymentComplete(true);
       
-      // Step 1: Initiate payment and get reference ID
-      const initiateResponse = await fetch(`${apiUrl}/initiate-payment`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          walletAddress: userWalletAddress,
-        }),
-      });
-      
-      if (!initiateResponse.ok) {
-        throw new Error('Failed to initiate payment');
+      // Verify the content after successful payment
+      if (storedContentHash && storedHashKey) {
+        const verifyData = await verifyContent(storedContentHash, storedHashKey, walletAddress);
+        
+        if (!verifyData.success) {
+          throw new Error('Verification failed');
+        }
+        
+        setVerificationComplete(true);
+        
+        // Generate a verification ID for tracking
+        const mockVerificationId = `verify-${Math.random().toString(36).substring(2, 10)}`;
+        
+        // Navigate to results page with hash details
+        router.push(`/result?id=${mockVerificationId}&hash=${storedContentHash}&hashKey=${storedHashKey}`);
       }
-      
-      const { id: referenceId } = await initiateResponse.json();
-      
-      // Step 2: Create payment payload for World chain
-      const payload: PayCommandInput = {
-        reference: referenceId,
-        to: '0x3f2c9135872431e0957bc25ac334a7c63c92a10f', // Recipient address
-        tokens: [
-          paymentToken === 'USDC' ? 
-            {
-              symbol: Tokens.USDCE,
-              token_amount: tokenToDecimals(0.1, Tokens.USDCE).toString(), // 0.1 USDC
-            } : 
-            {
-              symbol: Tokens.WLD,
-              token_amount: tokenToDecimals(1, Tokens.WLD).toString(), // 1 WLD
-            }
-        ],
-        description: `Authentica verification by ${provider?.name}`,
-      };
-      
-      if (!MiniKit.isInstalled()) {
-        console.log('MiniKit not installed, simulating payment for development');
-        return { success: true, referenceId, mock: true };
-      }
-      
-      // Step 3: Execute the payment command
-      const { finalPayload } = await MiniKit.commandsAsync.pay(payload);
-      
-      if (finalPayload.status !== 'success') {
-        throw new Error('Payment failed or was cancelled');
-      }
-      
-      // Step 4: Confirm payment with our backend
-      const confirmResponse = await fetch(`${apiUrl}/confirm-payment`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          reference: referenceId,
-          transaction_id: finalPayload.transaction_id,
-        }),
-      });
-      
-      if (!confirmResponse.ok) {
-        throw new Error('Failed to confirm payment');
-      }
-      
-      const confirmData = await confirmResponse.json();
-      
-      if (!confirmData.success) {
-        throw new Error(confirmData.error || 'Payment verification failed');
-      }
-      
-      return { success: true, referenceId };
     } catch (error: any) {
-      console.error('Payment processing error:', error);
-      throw new Error(error.message || 'Payment processing failed');
+      console.error('Error during verification:', error);
+      setError(error.message || 'Verification process failed');
+      setProcessingPayment(false);
     }
   };
   
-  // Update the verification request to include payment token information
-  const verifyContent = async (hash: string, hashKey: string, userWalletAddress: string) => {
-    // Get the API URL from environment variables, fallback to relative URL for local dev
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
-    
-    const verifyResponse = await fetch(`${apiUrl}/authentica`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'verify',
-        providerId: providerId,
-        hash: hash,
-        hashKey: hashKey,
-        walletAddress: userWalletAddress,
-        chain: chain,
-        paymentToken: chain === 'WORLD' ? paymentToken : undefined
-      }),
-    });
-    
-    if (!verifyResponse.ok) {
-      const errorData = await verifyResponse.json();
-      throw new Error(errorData.error || 'Verification failed');
-    }
-    
-    return await verifyResponse.json();
+  const handlePaymentError = (errorMessage: string) => {
+    setError(errorMessage);
+    setProcessingPayment(false);
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -264,40 +190,47 @@ export default function VerifyPage() {
       }
       
       // Save hash and hashKey for verification
-      const hash = storeData.hash;
-      const hashKey = storeData.hashKey;
+      setStoredContentHash(storeData.hash);
+      setStoredHashKey(storeData.hashKey);
       
-      // Step 2: Process payment if on World chain
-      if (chain === 'WORLD') {
-        try {
-          await processPayment(userWalletAddress);
-        } catch (paymentError: any) {
-          throw new Error(`Payment failed: ${paymentError.message}`);
-        }
-      }
+      // Start processing payment
+      setProcessingPayment(true);
+      setLoading(false);
       
-      // Step 3: Verify the content
-      const verifyData = await verifyContent(hash, hashKey, userWalletAddress);
-      
-      if (!verifyData.success) {
-        throw new Error('Verification failed');
-      }
-      
-      // Generate a verification ID for tracking
-      const mockVerificationId = `verify-${Math.random().toString(36).substring(2, 10)}`;
-      
-      // Navigate to results page with hash details
-      router.push(`/result?id=${mockVerificationId}&hash=${hash}&hashKey=${hashKey}`);
     } catch (error: any) {
       console.error('Error during verification:', error);
-      setError(error.message || 'Verification process failed');
-    } finally {
+      setError(error.message || 'Content storage failed');
       setLoading(false);
     }
   };
   
-  const handleChainChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setChain(e.target.value as 'WORLD' | 'ROOTSTOCK');
+  // Update the verification request to include payment token information
+  const verifyContent = async (hash: string, hashKey: string, userWalletAddress: string) => {
+    // Get the API URL from environment variables, fallback to relative URL for local dev
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+    
+    const verifyResponse = await fetch(`${apiUrl}/authentica`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'verify',
+        providerId: providerId,
+        hash: hash,
+        hashKey: hashKey,
+        walletAddress: userWalletAddress,
+        chain: 'WORLD',
+        paymentToken: 'USDC'
+      }),
+    });
+    
+    if (!verifyResponse.ok) {
+      const errorData = await verifyResponse.json();
+      throw new Error(errorData.error || 'Verification failed');
+    }
+    
+    return await verifyResponse.json();
   };
   
   if (!provider) {
@@ -380,112 +313,90 @@ export default function VerifyPage() {
         </div>
       </motion.div>
       
-      {/* Verification form */}
-      <motion.form 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        onSubmit={handleSubmit}
-        className="space-y-4"
-      >
-        {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
-        
-        <div>
-          <label htmlFor="content" className="block text-sm font-medium text-medium-contrast mb-1">
-            Content to verify:
-          </label>
-          <textarea
-            id="content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={6}
-            className="w-full rounded-lg border border-gray-200 dark:border-gray-700 focus:border-blue-300 dark:focus:border-blue-500 bg-white dark:bg-gray-800 p-3 text-high-contrast placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all"
-            placeholder="Paste the text you want to verify..."
-          />
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Paste the content you want to verify for AI generation. The entire text will be analyzed by the provider&apos;s algorithms.</p>
-        </div>
-        
-        <div>
-          <label htmlFor="chain" className="block text-sm font-medium text-medium-contrast mb-1">
-            Blockchain:
-          </label>
-          <select
-            id="chain"
-            value={chain}
-            onChange={handleChainChange}
-            className="w-full rounded-lg border border-gray-200 dark:border-gray-700 focus:border-blue-300 dark:focus:border-blue-500 bg-white dark:bg-gray-800 p-3 text-high-contrast text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all"
-          >
-            <option value="WORLD">World Chain (WRD)</option>
-            <option value="ROOTSTOCK">Rootstock (BTC)</option>
-          </select>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Select which blockchain you want to use for payment and verification.</p>
-        </div>
-        
-        {chain === 'WORLD' && (
-          <div>
-            <label className="block text-sm font-medium text-medium-contrast mb-1">
-              Payment Token:
-            </label>
-            <div className="flex space-x-4 mt-2">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="paymentToken"
-                  value="USDC"
-                  checked={paymentToken === 'USDC'}
-                  onChange={handleTokenChange}
-                  className="mr-2"
-                />
-                <span className="text-sm">0.1 USDC</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="paymentToken"
-                  value="WLD"
-                  checked={paymentToken === 'WLD'}
-                  onChange={handleTokenChange}
-                  className="mr-2"
-                />
-                <span className="text-sm">1 WLD</span>
-              </label>
+      {/* Verification form or Payment UI */}
+      {!processingPayment ? (
+        <motion.form 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          onSubmit={handleSubmit}
+          className="space-y-4"
+        >
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
+              {error}
             </div>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Select which token you want to use for payment on World chain.
-            </p>
-          </div>
-        )}
-        
-        <div className="pt-4">
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full btn-primary py-3 flex items-center justify-center"
-          >
-            {loading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Processing...
-              </>
-            ) : (
-              <>Verify Content</>
-            )}
-          </button>
+          )}
           
-          <p className="mt-4 text-center text-xs text-medium-contrast">
-            {chain === 'WORLD' 
-              ? `You will be prompted to pay ${paymentToken === 'USDC' ? '0.1 USDC' : '1 WLD'} on World chain` 
-              : `You will be prompted to approve a payment of ${provider.price} ${provider.currency}`}
-          </p>
-        </div>
-      </motion.form>
+          <div>
+            <label htmlFor="content" className="block text-sm font-medium text-medium-contrast mb-1">
+              Content to verify:
+            </label>
+            <textarea
+              id="content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              rows={6}
+              className="w-full rounded-lg border border-gray-200 dark:border-gray-700 focus:border-blue-300 dark:focus:border-blue-500 bg-white dark:bg-gray-800 p-3 text-high-contrast placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all"
+              placeholder="Paste the text you want to verify..."
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Paste the content you want to verify for AI generation. The entire text will be analyzed by the provider&apos;s algorithms.</p>
+          </div>
+          
+          <div className="pt-4">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full btn-primary py-3 flex items-center justify-center"
+            >
+              {loading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Processing...
+                </>
+              ) : (
+                <>Continue to Payment</>
+              )}
+            </button>
+          </div>
+        </motion.form>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <h2 className="text-lg font-semibold mb-4">Payment</h2>
+          
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm mb-4">
+              {error}
+            </div>
+          )}
+          
+          <PaymentSelector
+            providerId={providerId || ''}
+            providerName={provider.name || ''}
+            price={provider.price || 0}
+            currency={provider.currency || 'USDC'}
+            walletAddress={walletAddress}
+            onPaymentSuccess={handlePaymentSuccess}
+            onPaymentError={handlePaymentError}
+          />
+          
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => setProcessingPayment(false)}
+              className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+            >
+              ← Back to content
+            </button>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 } 
