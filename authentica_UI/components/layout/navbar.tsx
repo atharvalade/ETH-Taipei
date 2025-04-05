@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import Image from "next/image";
 import useScroll from "@/lib/hooks/use-scroll";
-import { Github } from "lucide-react";
 
 export default function NavBar() {
   const scrolled = useScroll(50);
@@ -18,24 +17,30 @@ export default function NavBar() {
         } z-30 transition-all`}
       >
         <div className="mx-5 flex h-16 w-full max-w-screen-xl items-center justify-between">
-          <Link href="/" className="flex items-center font-display text-2xl">
-            <Image
-              src="/logo.png"
-              alt="Authentica logo"
-              width="30"
-              height="30"
-              className="mr-2 rounded-sm"
-            ></Image>
-            <p>Authentica</p>
+          <Link href="/" className="flex items-center mt-1">
+            <div className="relative w-[160px] h-[40px]">
+              <object 
+                data="/Authentica_SVG.svg" 
+                type="image/svg+xml"
+                className="w-full h-full"
+                aria-label="Authentica logo"
+              />
+            </div>
           </Link>
           <a
-            href="https://github.com"
+            href="https://world.org"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center space-x-1 rounded-full border border-gray-300 bg-white px-4 py-1.5 text-sm text-gray-600 shadow-sm transition-colors hover:border-gray-800"
+            className="flex items-center justify-center rounded-full border border-gray-300 bg-white px-5 py-1.5 text-sm font-medium text-gray-800 shadow-sm transition-colors hover:border-gray-800 h-[40px] mt-1"
           >
-            <Github className="h-4 w-4" />
-            <span>GitHub</span>
+            <span className="mr-2">Try on</span>
+            <Image 
+              src="/world_logo.svg"
+              alt="World logo"
+              width={70}
+              height={70}
+              priority
+            />
           </a>
         </div>
       </div>
