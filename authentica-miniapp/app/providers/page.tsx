@@ -81,7 +81,7 @@ export default function ProvidersPage() {
   }, [activeTab]);
   
   return (
-    <div className="container-mobile">
+    <div className="relative z-10 container-mobile">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}

@@ -131,7 +131,7 @@ export default function ResultPage() {
   
   if (loading) {
     return (
-      <div className="container-mobile flex items-center justify-center min-h-[60vh]">
+      <div className="relative z-10 container-mobile flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <svg className="animate-spin h-10 w-10 text-primary mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -145,7 +145,7 @@ export default function ResultPage() {
   
   if (!result) {
     return (
-      <div className="container-mobile flex items-center justify-center min-h-[60vh]">
+      <div className="relative z-10 container-mobile flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="text-red-500 dark:text-red-400 mb-4">Verification not found</div>
           <button 
@@ -160,7 +160,7 @@ export default function ResultPage() {
   }
   
   return (
-    <div className="container-mobile">
+    <div className="relative z-10 container-mobile">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}

@@ -35,7 +35,9 @@ html, body {
 /* Mobile-First Responsive Styles */
 @layer components {
   .container-mobile {
-    @apply w-full px-4 mx-auto max-w-md;
+    @apply w-full px-4 mx-auto max-w-md pb-12;
+    min-height: 100vh;
+    padding-top: max(40px, env(safe-area-inset-top, 0px) + 30px);
   }
   
   .btn-primary {
@@ -150,12 +152,6 @@ html, body {
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
 }
 
 @layer utilities {
@@ -184,7 +180,8 @@ body {
   }
   
   .container-mobile {
-    @apply px-3;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
   }
   
   .mobile-bottom-nav-item span {

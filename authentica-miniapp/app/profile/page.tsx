@@ -133,7 +133,7 @@ export default function ProfilePage() {
   
   if (isLoading) {
     return (
-      <div className="container-mobile flex items-center justify-center min-h-screen">
+      <div className="relative z-10 container-mobile flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="inline-block">
             <svg className="animate-spin h-10 w-10 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -148,7 +148,7 @@ export default function ProfilePage() {
   }
   
   return (
-    <div className="container-mobile">
+    <div className="relative z-10 container-mobile">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}

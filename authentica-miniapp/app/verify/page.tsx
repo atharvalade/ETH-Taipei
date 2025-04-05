@@ -157,7 +157,7 @@ export default function VerifyPage() {
   
   if (!provider) {
     return (
-      <div className="container-mobile flex items-center justify-center min-h-[60vh]">
+      <div className="relative z-10 container-mobile flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           {error ? (
             <div className="text-red-500 dark:text-red-400 mb-4">{error}</div>
@@ -176,7 +176,7 @@ export default function VerifyPage() {
   }
   
   return (
-    <div className="container-mobile">
+    <div className="relative z-10 container-mobile">
       {/* Header with provider info */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}

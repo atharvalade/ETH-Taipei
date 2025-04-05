@@ -44,23 +44,8 @@ export default function Home() {
   };
   
   return (
-    <div className="container-mobile relative">
-      {/* Background gradients */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        <div className="absolute -top-16 -left-16 w-48 h-48 bg-primary/20 rounded-full blur-3xl opacity-60" />
-        <div className="absolute top-1/3 -right-16 w-60 h-60 bg-purple-500/20 rounded-full blur-3xl opacity-50" />
-        <div className="absolute -bottom-16 left-16 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl opacity-40" />
-      </div>
-      
-      {/* Animated noise texture overlay */}
-      <div 
-        className="absolute inset-0 z-0 opacity-30 pointer-events-none"
-        style={{ 
-          backgroundImage: 'url(/noise-texture.svg)',
-          backgroundSize: '200px',
-          mixBlendMode: 'overlay'
-        }}
-      />
+    <div className="relative z-10 container-mobile">
+      {/* Background gradients are handled by the layout.tsx file - removing duplicate gradient containers */}
       
       {/* Content with loading animation */}
       <AnimatePresence mode="wait">
@@ -69,24 +54,28 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="relative z-10"
           >
             {/* Header with logo */}
             <motion.div 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="flex justify-center mb-8 pt-4"
+              className="flex justify-center mb-8 pt-2"
             >
-              <Image
-                src="/Authentica_SVG.svg"
-                alt="Authentica Logo"
-                width={180}
-                height={45}
-                className="w-auto h-auto max-h-14"
-                style={{ objectFit: "contain" }}
-                priority
-              />
+              <div className="bg-transparent">
+                <Image
+                  src="/Authentica_Logo.png"
+                  alt="Authentica Logo"
+                  width={200}
+                  height={50}
+                  className="w-auto h-auto max-h-16"
+                  style={{ 
+                    objectFit: "contain",
+                    backgroundColor: "transparent" 
+                  }}
+                  priority
+                />
+              </div>
             </motion.div>
             
             {/* Intro text */}
