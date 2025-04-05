@@ -349,8 +349,8 @@ export default async function handler(req, res) {
 // Verify content action handler
 function handleVerifyAction(req, res) {
   try {
-    const { providerId, hash, hashKey, walletAddress, chain } = req.body;
-    console.log(`🔍 Verifying content with hash: ${hash}, provider: ${providerId}`);
+    const { providerId, hash, hashKey, walletAddress, chain, paymentToken } = req.body;
+    console.log(`🔍 Verifying content with hash: ${hash}, provider: ${providerId}, chain: ${chain}`);
     
     if (!providerId || !hash || !hashKey || !walletAddress || !chain) {
       console.error("❌ Missing required fields for verification");
@@ -417,7 +417,8 @@ function handleVerifyAction(req, res) {
           isHumanWritten: result.isHumanWritten,
           confidenceScore: result.confidenceScore,
           provider: providerId,
-          chain
+          chain,
+          paymentToken: chain === 'WORLD' ? paymentToken : undefined
         };
         
         user.verificationCount += 1;
@@ -433,6 +434,7 @@ function handleVerifyAction(req, res) {
         confidenceScore: result.confidenceScore,
         provider: providerId,
         chain,
+        paymentToken: chain === 'WORLD' ? paymentToken : undefined,
         hash,
         hashKey
       }
@@ -607,4 +609,7 @@ async function handleStoreContent(req, res) {
       error: 'Server error storing content' 
     });
   }
-} 
+}
+
+// Make these available for other API routes
+export { storeOnIPFS, contentStorage, users }; 

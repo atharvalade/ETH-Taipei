@@ -33,6 +33,20 @@ const providerData = {
   }
 };
 
+interface VerificationResult {
+  isHumanWritten: boolean;
+  confidenceScore: number;
+  provider: any;
+  chain: string;
+  status: string;
+  ipfsHash: string;
+  transactionHash: string;
+  paymentInfo?: {
+    token: string;
+    amount: string;
+  };
+}
+
 export default function ResultPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -48,7 +62,7 @@ export default function ResultPage() {
   console.log('- HashKey:', hashKey);
   console.log('- Wallet:', urlWalletAddress);
   
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<VerificationResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [mintingNft, setMintingNft] = useState(false);
@@ -120,15 +134,31 @@ export default function ResultPage() {
         }
         
         // Format the result for display
-        setResult({
-          isHumanWritten: data.result.isHumanWritten,
-          confidenceScore: data.result.confidenceScore,
-          provider: providerData[data.result.provider as keyof typeof providerData],
-          chain: data.result.chain,
-          status: 'COMPLETED',
-          ipfsHash: hash,
-          transactionHash: `0x${Math.random().toString(36).substring(2, 10)}`, // Mock transaction hash
-        });
+        if (data.result.chain === 'WORLD') {
+          setResult({
+            isHumanWritten: data.result.isHumanWritten,
+            confidenceScore: data.result.confidenceScore,
+            provider: providerData[data.result.provider as keyof typeof providerData],
+            chain: data.result.chain,
+            status: 'COMPLETED',
+            ipfsHash: hash,
+            transactionHash: `0x${Math.random().toString(36).substring(2, 10)}`, // Mock transaction hash
+            paymentInfo: {
+              token: data.result.paymentToken || 'USDC', // Default to USDC if not specified
+              amount: data.result.paymentToken === 'WLD' ? '1 WLD' : '0.1 USDC'
+            }
+          });
+        } else {
+          setResult({
+            isHumanWritten: data.result.isHumanWritten,
+            confidenceScore: data.result.confidenceScore,
+            provider: providerData[data.result.provider as keyof typeof providerData],
+            chain: data.result.chain,
+            status: 'COMPLETED',
+            ipfsHash: hash,
+            transactionHash: `0x${Math.random().toString(36).substring(2, 10)}`, // Mock transaction hash
+          });
+        }
       } catch (error: any) {
         console.error('Error fetching verification result:', error);
         setError(error.message || 'Failed to fetch verification result');
@@ -305,6 +335,18 @@ export default function ResultPage() {
             <span className="text-medium-contrast">Transaction</span>
             <span className="font-mono text-xs bg-gray-100 dark:bg-gray-800 text-medium-contrast px-2 py-1 rounded truncate max-w-[150px]">{result.transactionHash}</span>
           </div>
+          
+          {result.chain === 'WORLD' && result.paymentInfo && (
+            <div className="flex justify-between items-center">
+              <span className="text-medium-contrast">Payment</span>
+              <span className="font-medium text-high-contrast">
+                {result.paymentInfo.amount}
+                <span className="ml-1 px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs rounded-full">
+                  World Chain
+                </span>
+              </span>
+            </div>
+          )}
           
           {nftMinted && nftTokenId && (
             <div className="flex justify-between items-center">

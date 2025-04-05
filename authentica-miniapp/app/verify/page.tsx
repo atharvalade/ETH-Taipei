@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { MiniKit } from "@worldcoin/minikit-js";
+import { MiniKit, tokenToDecimals, Tokens, PayCommandInput } from "@worldcoin/minikit-js";
 
 // Mock data for providers (should match the data in providers/page.tsx)
 const mockProviders = [
@@ -80,6 +80,7 @@ export default function VerifyPage() {
   const [loading, setLoading] = useState(false);
   const [chain, setChain] = useState<'WORLD' | 'ROOTSTOCK'>('WORLD');
   const [walletAddress, setWalletAddress] = useState<string>('');
+  const [paymentToken, setPaymentToken] = useState<'WLD' | 'USDC'>('USDC');
   
   // Load provider details and wallet address
   useEffect(() => {
@@ -102,6 +103,120 @@ export default function VerifyPage() {
     }
   }, [providerId, router]);
   
+  const handleTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPaymentToken(e.target.value as 'WLD' | 'USDC');
+  };
+  
+  const processPayment = async (userWalletAddress: string, hash: string, hashKey: string) => {
+    try {
+      // Get the API URL from environment variables, fallback to relative URL for local dev
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+      
+      // Step 1: Initiate payment and get reference ID
+      const initiateResponse = await fetch(`${apiUrl}/initiate-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          walletAddress: userWalletAddress,
+        }),
+      });
+      
+      if (!initiateResponse.ok) {
+        throw new Error('Failed to initiate payment');
+      }
+      
+      const { id: referenceId } = await initiateResponse.json();
+      
+      // Step 2: Create payment payload for World chain
+      const payload: PayCommandInput = {
+        reference: referenceId,
+        to: '0x3f2c9135872431e0957bc25ac334a7c63c92a10f', // Recipient address
+        tokens: [
+          paymentToken === 'USDC' ? 
+            {
+              symbol: Tokens.USDCE,
+              token_amount: tokenToDecimals(0.1, Tokens.USDCE).toString(), // 0.1 USDC
+            } : 
+            {
+              symbol: Tokens.WLD,
+              token_amount: tokenToDecimals(1, Tokens.WLD).toString(), // 1 WLD
+            }
+        ],
+        description: `Authentica verification by ${provider?.name}`,
+      };
+      
+      if (!MiniKit.isInstalled()) {
+        console.log('MiniKit not installed, simulating payment for development');
+        return { success: true, referenceId, mock: true };
+      }
+      
+      // Step 3: Execute the payment command
+      const { finalPayload } = await MiniKit.commandsAsync.pay(payload);
+      
+      if (finalPayload.status !== 'success') {
+        throw new Error('Payment failed or was cancelled');
+      }
+      
+      // Step 4: Confirm payment with our backend
+      const confirmResponse = await fetch(`${apiUrl}/confirm-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reference: referenceId,
+          transaction_id: finalPayload.transaction_id,
+        }),
+      });
+      
+      if (!confirmResponse.ok) {
+        throw new Error('Failed to confirm payment');
+      }
+      
+      const confirmData = await confirmResponse.json();
+      
+      if (!confirmData.success) {
+        throw new Error(confirmData.error || 'Payment verification failed');
+      }
+      
+      return { success: true, referenceId };
+    } catch (error: any) {
+      console.error('Payment processing error:', error);
+      throw new Error(error.message || 'Payment processing failed');
+    }
+  };
+  
+  // Update the verification request to include payment token information
+  const verifyContent = async (hash: string, hashKey: string, userWalletAddress: string) => {
+    // Get the API URL from environment variables, fallback to relative URL for local dev
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+    
+    const verifyResponse = await fetch(`${apiUrl}/authentica`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'verify',
+        providerId: providerId,
+        hash: hash,
+        hashKey: hashKey,
+        walletAddress: userWalletAddress,
+        chain: chain,
+        paymentToken: chain === 'WORLD' ? paymentToken : undefined
+      }),
+    });
+    
+    if (!verifyResponse.ok) {
+      const errorData = await verifyResponse.json();
+      throw new Error(errorData.error || 'Verification failed');
+    }
+    
+    return await verifyResponse.json();
+  };
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -121,7 +236,6 @@ export default function VerifyPage() {
     try {
       // Use default wallet address if not available from MiniKit
       const userWalletAddress = walletAddress || '0xDefaultWalletAddress';
-      console.log('Using wallet address:', userWalletAddress);
       
       // Get the API URL from environment variables, fallback to relative URL for local dev
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
@@ -153,38 +267,27 @@ export default function VerifyPage() {
       const hash = storeData.hash;
       const hashKey = storeData.hashKey;
       
-      console.log('Content successfully stored:');
-      console.log('- Hash:', hash);
-      console.log('- HashKey:', hashKey);
-      console.log('- Wallet Address:', userWalletAddress);
+      // Step 2: Process payment if on World chain
+      if (chain === 'WORLD') {
+        try {
+          await processPayment(userWalletAddress, hash, hashKey);
+        } catch (paymentError: any) {
+          throw new Error(`Payment failed: ${paymentError.message}`);
+        }
+      }
+      
+      // Step 3: Verify the content
+      const verifyData = await verifyContent(hash, hashKey, userWalletAddress);
+      
+      if (!verifyData.success) {
+        throw new Error('Verification failed');
+      }
       
       // Generate a verification ID for tracking
       const mockVerificationId = `verify-${Math.random().toString(36).substring(2, 10)}`;
       
-      // ULTRA SIMPLE URL APPROACH - just concatenate the values
-      // No encoding/decoding at all - keep it extremely simple
-      const url = `/result?id=${mockVerificationId}&hash=${hash}&hashKey=${hashKey}&wallet=${userWalletAddress}`;
-      
-      // Check if MiniKit is available (running in World App)
-      if (MiniKit.isInstalled()) {
-        // We're in World App, let's start verification process
-        
-        // In a real app, this would initiate a blockchain transaction
-        // For the hackathon prototype, we'll just simulate it
-        
-        // Navigate to results page with hash details
-        setTimeout(() => {
-          router.push(url);
-        }, 1000);
-      } else {
-        // For testing outside World App
-        console.log('Not in World App, simulating verification...');
-        
-        // Simulate verification without World App integration
-        setTimeout(() => {
-          router.push(url);
-        }, 1000);
-      }
+      // Navigate to results page with hash details
+      router.push(`/result?id=${mockVerificationId}&hash=${hash}&hashKey=${hashKey}`);
     } catch (error: any) {
       console.error('Error during verification:', error);
       setError(error.message || 'Verification process failed');
@@ -322,6 +425,41 @@ export default function VerifyPage() {
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Select which blockchain you want to use for payment and verification.</p>
         </div>
         
+        {chain === 'WORLD' && (
+          <div>
+            <label className="block text-sm font-medium text-medium-contrast mb-1">
+              Payment Token:
+            </label>
+            <div className="flex space-x-4 mt-2">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="paymentToken"
+                  value="USDC"
+                  checked={paymentToken === 'USDC'}
+                  onChange={handleTokenChange}
+                  className="mr-2"
+                />
+                <span className="text-sm">0.1 USDC</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="paymentToken"
+                  value="WLD"
+                  checked={paymentToken === 'WLD'}
+                  onChange={handleTokenChange}
+                  className="mr-2"
+                />
+                <span className="text-sm">1 WLD</span>
+              </label>
+            </div>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Select which token you want to use for payment on World chain.
+            </p>
+          </div>
+        )}
+        
         <div className="pt-4">
           <button
             type="submit"
@@ -342,7 +480,9 @@ export default function VerifyPage() {
           </button>
           
           <p className="mt-4 text-center text-xs text-medium-contrast">
-            You will be prompted to approve a payment of {provider.price} {provider.currency}
+            {chain === 'WORLD' 
+              ? `You will be prompted to pay ${paymentToken === 'USDC' ? '0.1 USDC' : '1 WLD'} on World chain` 
+              : `You will be prompted to approve a payment of ${provider.price} ${provider.currency}`}
           </p>
         </div>
       </motion.form>
