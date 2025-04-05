@@ -365,16 +365,74 @@ export default function ResultPage() {
           transition={{ delay: 0.2 }}
           className="card mb-6"
         >
-          <h2 className="text-lg font-semibold text-high-contrast mb-2">Certificate Your Content</h2>
+          <h2 className="text-lg font-semibold text-high-contrast mb-2">Mint NFT Certificate on Rootstock</h2>
           <p className="text-sm text-medium-contrast mb-4">
-            Your content has been verified as human-written with high confidence. You can now mint an NFT certificate to prove its authenticity.
+            Your content has been verified as human-written with high confidence. Create a permanent record on the Rootstock blockchain with all verification metadata.
           </p>
+          
+          <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-md mb-4">
+            <h3 className="text-sm font-medium mb-2">NFT Metadata</h3>
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Content Hash:</span>
+                <span className="font-mono">{hash.substring(0, 10)}...{hash.substring(hash.length - 10)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Hash Key:</span>
+                <span className="font-mono">{hashKey.substring(0, 8)}...{hashKey.substring(hashKey.length - 8)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">IPFS URL:</span>
+                <a 
+                  href={`https://gateway.pinata.cloud/ipfs/${hash}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:underline font-mono"
+                >
+                  pinata.cloud/ipfs/{hash.substring(0, 8)}...
+                </a>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Verification Method:</span>
+                <span>{result.provider?.name || 'Authentica'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Verification Date:</span>
+                <span>{new Date().toLocaleDateString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Verification Time:</span>
+                <span>{new Date().toLocaleTimeString()}</span>
+              </div>
+            </div>
+          </div>
           
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm mb-4">
               {error}
             </div>
           )}
+
+          <div className="flex flex-col space-y-3 mb-4">
+            <label className="text-sm font-medium mb-1">Select Payment Method</label>
+            <div className="flex space-x-2">
+              <button
+                onClick={handleMintNft}
+                disabled={mintingNft}
+                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg flex items-center justify-center"
+              >
+                <svg className="w-5 h-5 mr-2" viewBox="0 0 784 784" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M392 784C608.28 784 784 608.28 784 392C784 175.72 608.28 0 392 0C175.72 0 0 175.72 0 392C0 608.28 175.72 784 392 784Z" fill="#24292E"/>
+                  <path d="M392 163.333L261.333 359.733L392 294.267V163.333Z" fill="#FFFFFF"/>
+                  <path d="M392 294.267L261.333 359.733L392 457.333V294.267Z" fill="#FFFFFF"/>
+                  <path d="M392 457.333L522.667 359.733L392 294.267V457.333Z" fill="#FFFFFF"/>
+                  <path d="M261.333 392.533L392 620.667V490L261.333 392.533Z" fill="#FFFFFF"/>
+                  <path d="M392 490V620.667L522.667 392.533L392 490Z" fill="#FFFFFF"/>
+                </svg>
+                Pay with MetaMask (0.00001 rBTC ≈ $1)
+              </button>
+            </div>
+          </div>
           
           <button
             onClick={handleMintNft}
@@ -387,15 +445,15 @@ export default function ResultPage() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Minting Certificate...
+                Minting on Rootstock...
               </>
             ) : (
-              <>Mint Certificate NFT (1 USDC)</>
+              <>Mint Rootstock NFT Certificate</>
             )}
           </button>
           
           <p className="mt-3 text-xs text-center text-medium-contrast">
-            The NFT will be minted to your connected wallet address and will contain a permanent record of this verification.
+            The NFT will be minted on the Rootstock blockchain and include all verification metadata.
           </p>
         </motion.div>
       )}
@@ -412,24 +470,66 @@ export default function ResultPage() {
               <path d="M7 13L10 16L17 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
             </svg>
-            <h2 className="text-lg font-semibold text-green-800 dark:text-green-300">Certificate Minted!</h2>
+            <h2 className="text-lg font-semibold text-green-800 dark:text-green-300">Rootstock NFT Minted!</h2>
           </div>
           
           <p className="text-sm text-green-700 dark:text-green-400 mb-3">
-            Your NFT certificate has been successfully minted. You can now share your content with confidence that it has been verified as human-written.
+            Your NFT certificate has been successfully minted on the Rootstock blockchain with all verification metadata. You can now share your content with confidence that it has been verified as human-written.
           </p>
           
-          <div className="bg-white dark:bg-gray-800 p-3 rounded-lg mb-3 flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Token ID:</span>
-            <span className="font-mono text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 px-2 py-1 rounded">{nftTokenId}</span>
+          <div className="space-y-3">
+            <div className="bg-white dark:bg-gray-800 p-3 rounded-lg flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Token ID:</span>
+              <span className="font-mono text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 px-2 py-1 rounded">{nftTokenId}</span>
+            </div>
+            
+            <div className="bg-white dark:bg-gray-800 p-3 rounded-lg flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Blockchain:</span>
+              <span className="font-mono text-xs px-2 py-1 rounded flex items-center">
+                <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 9.5L12 4L22 9.5L12 15L2 9.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M6 11.5V16.5L12 20L18 16.5V11.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Rootstock Testnet
+              </span>
+            </div>
+            
+            <div className="bg-white dark:bg-gray-800 p-3 rounded-lg flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">IPFS Hash:</span>
+              <a 
+                href={`https://gateway.pinata.cloud/ipfs/${hash}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:underline font-mono text-xs"
+              >
+                {hash.substring(0, 8)}...{hash.substring(hash.length - 8)}
+              </a>
+            </div>
+            
+            <div className="bg-white dark:bg-gray-800 p-3 rounded-lg flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Mint Date:</span>
+              <span className="text-xs">{new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}</span>
+            </div>
           </div>
           
-          <button
-            onClick={() => router.push('/profile')}
-            className="w-full btn-secondary-green py-2.5"
-          >
-            View in Profile
-          </button>
+          <div className="mt-4 flex space-x-3">
+            <button
+              onClick={() => router.push('/profile')}
+              className="flex-1 btn-secondary-green py-2.5"
+            >
+              View in Profile
+            </button>
+            
+            <button
+              onClick={() => window.open(`https://gateway.pinata.cloud/ipfs/${hash}`, '_blank')}
+              className="flex-grow-0 btn-outline-green p-2.5"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 6H12.01M12 20H12.01M18 12H18.01M6 12H6.01M10 13L8.5 15M14 13L15.5 15M14 11L15.5 9M10 11L8.5 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+            </button>
+          </div>
         </motion.div>
       )}
       
