@@ -6,6 +6,8 @@ import { config } from './config';
 // Import routes
 import providersRoutes from './api/providers.routes';
 import verificationsRoutes from './api/verifications.routes';
+import userRoutes from './api/user.routes';
+import detectionRoutes from './api/detection.routes';
 
 // Initialize Express app
 const app = express();
@@ -17,6 +19,8 @@ app.use(express.json());
 // Routes
 app.use('/api/providers', providersRoutes);
 app.use('/api/verifications', verificationsRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/detection', detectionRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

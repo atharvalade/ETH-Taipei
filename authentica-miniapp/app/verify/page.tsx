@@ -81,9 +81,19 @@ export default function VerifyPage() {
   const [loading, setLoading] = useState(false);
   const [chain, setChain] = useState<'WORLD' | 'ROOTSTOCK'>('WORLD');
   const [verificationId, setVerificationId] = useState<string | null>(null);
+  const [walletAddress, setWalletAddress] = useState<string>('');
+  const [contentHash, setContentHash] = useState<string>('');
+  const [hashKey, setHashKey] = useState<string>('');
   
-  // Load provider details
+  // Load provider details and wallet address
   useEffect(() => {
+    // Check if MiniKit is available (running in World App)
+    if (MiniKit.isInstalled()) {
+      if (MiniKit.walletAddress) {
+        setWalletAddress(MiniKit.walletAddress);
+      }
+    }
+
     if (providerId) {
       const foundProvider = mockProviders.find(p => p.id === providerId);
       if (foundProvider) {
@@ -113,24 +123,52 @@ export default function VerifyPage() {
     setError('');
     
     try {
+      // Use default wallet address if not available from MiniKit
+      const userWalletAddress = walletAddress || '0xDefaultWalletAddress';
+      
+      // Step 1: Store the content in IPFS through our backend
+      const storeResponse = await fetch('/api/submit-content', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: content,
+          walletAddress: userWalletAddress,
+        }),
+      });
+      
+      if (!storeResponse.ok) {
+        const errorData = await storeResponse.json();
+        throw new Error(errorData.error || 'Failed to store content');
+      }
+      
+      const storeData = await storeResponse.json();
+      
+      if (!storeData.success) {
+        throw new Error(storeData.error || 'Failed to store content');
+      }
+      
+      // Save hash and hashKey for verification
+      const hash = storeData.hash;
+      const hashKey = storeData.hashKey;
+      setContentHash(hash);
+      setHashKey(hashKey);
+      
+      // Generate a verification ID for tracking
+      const mockVerificationId = `verify-${Math.random().toString(36).substring(2, 10)}`;
+      setVerificationId(mockVerificationId);
+      
       // Check if MiniKit is available (running in World App)
       if (MiniKit.isInstalled()) {
         // We're in World App, let's start verification process
         
-        // Since we're just prototyping, we'll simulate a successful verification
-        // In a production app, you would:
-        // 1. Call your API to create a verification request
-        // 2. Get a payment amount/address from the provider
-        // 3. Redirect to payment
+        // In a real app, this would initiate a blockchain transaction
+        // For the hackathon prototype, we'll just simulate it
         
-        // Generate a random verification ID
-        const mockVerificationId = `verify-${Math.random().toString(36).substring(2, 10)}`;
-        setVerificationId(mockVerificationId);
-        
-        // Navigate to results page with this ID
-        // In a real app, we would navigate to a payment page first
+        // Navigate to results page with hash details
         setTimeout(() => {
-          router.push(`/result?id=${mockVerificationId}`);
+          router.push(`/result?id=${mockVerificationId}&hash=${hash}&hashKey=${hashKey}`);
         }, 1000);
       } else {
         // For testing outside World App
@@ -138,9 +176,7 @@ export default function VerifyPage() {
         
         // Simulate verification without World App integration
         setTimeout(() => {
-          const mockVerificationId = `verify-${Math.random().toString(36).substring(2, 10)}`;
-          setVerificationId(mockVerificationId);
-          router.push(`/result?id=${mockVerificationId}`);
+          router.push(`/result?id=${mockVerificationId}&hash=${hash}&hashKey=${hashKey}`);
         }, 1000);
       }
     } catch (error: any) {
@@ -250,48 +286,59 @@ export default function VerifyPage() {
         )}
         
         <div>
-          <label htmlFor="chain" className="block text-sm font-medium text-medium-contrast mb-2">
-            Blockchain for Payment & Verification
-          </label>
-          <select
-            id="chain"
-            value={chain}
-            onChange={handleChainChange}
-            className="w-full p-3 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-            disabled={loading}
-          >
-            <option value="WORLD">World Chain (WRD/USDC)</option>
-            <option value="ROOTSTOCK">Rootstock (BTC)</option>
-          </select>
-        </div>
-        
-        <div>
-          <label htmlFor="content" className="block text-sm font-medium text-medium-contrast mb-2">
-            Content to Verify
+          <label htmlFor="content" className="block text-sm font-medium text-medium-contrast mb-1">
+            Content to verify:
           </label>
           <textarea
             id="content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
+            rows={6}
+            className="w-full rounded-lg border border-gray-200 dark:border-gray-700 focus:border-blue-300 dark:focus:border-blue-500 bg-white dark:bg-gray-800 p-3 text-high-contrast placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all"
             placeholder="Paste the text you want to verify..."
-            className="w-full p-4 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary h-40"
-            disabled={loading}
           />
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Paste the content you want to verify for AI generation. The entire text will be analyzed by the provider's algorithms.</p>
         </div>
         
-        <motion.button
-          type="submit"
-          disabled={loading}
-          whileTap={{ scale: 0.98 }}
-          className="bg-primary text-white w-full py-4 rounded-full font-medium shadow-lg hover:shadow-primary/20 active:scale-[0.98] transition-all disabled:opacity-70"
-        >
-          {loading ? 'Processing...' : `Pay ${provider.price} ${provider.currency} & Verify`}
-        </motion.button>
+        <div>
+          <label htmlFor="chain" className="block text-sm font-medium text-medium-contrast mb-1">
+            Blockchain:
+          </label>
+          <select
+            id="chain"
+            value={chain}
+            onChange={handleChainChange}
+            className="w-full rounded-lg border border-gray-200 dark:border-gray-700 focus:border-blue-300 dark:focus:border-blue-500 bg-white dark:bg-gray-800 p-3 text-high-contrast text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all"
+          >
+            <option value="WORLD">World Chain (WRD)</option>
+            <option value="ROOTSTOCK">Rootstock (BTC)</option>
+          </select>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Select which blockchain you want to use for payment and verification.</p>
+        </div>
         
-        <p className="text-xs text-center text-low-contrast mt-4">
-          By proceeding, the content will be hashed and stored on IPFS.
-          Payment will be processed via {chain === 'WORLD' ? 'World Chain' : 'Rootstock'}.
-        </p>
+        <div className="pt-4">
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full btn-primary py-3 flex items-center justify-center"
+          >
+            {loading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+              </>
+            ) : (
+              <>Verify Content</>
+            )}
+          </button>
+          
+          <p className="mt-4 text-center text-xs text-medium-contrast">
+            You will be prompted to approve a payment of {provider.price} {provider.currency}
+          </p>
+        </div>
       </motion.form>
     </div>
   );

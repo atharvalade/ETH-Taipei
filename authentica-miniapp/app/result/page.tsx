@@ -5,35 +5,31 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { MiniKit } from "@worldcoin/minikit-js";
 
-// Mock verification results (in a real app, this would come from an API)
-const mockResults = {
-  "verify-1abc123": {
-    isHumanWritten: true,
-    confidenceScore: 0.97,
-    provider: {
-      id: "provider1",
-      name: "RealText Systems",
-      logoText: "R",
-      logoBackground: "bg-indigo-600",
-    },
-    chain: "WORLD",
-    status: "COMPLETED",
-    ipfsHash: "Qm...abc123",
-    transactionHash: "0x1234...abcd",
+// Provider data mapping (this would be fetched from a central source in production)
+const providerData = {
+  "provider1": {
+    id: "provider1",
+    name: "RealText Systems",
+    logoText: "R",
+    logoBackground: "bg-indigo-600",
   },
-  "verify-2def456": {
-    isHumanWritten: false,
-    confidenceScore: 0.89,
-    provider: {
-      id: "provider2",
-      name: "VerifyAI Labs",
-      logoText: "V",
-      logoBackground: "bg-sky-500",
-    },
-    chain: "WORLD",
-    status: "COMPLETED",
-    ipfsHash: "Qm...def456",
-    transactionHash: "0x5678...efgh",
+  "provider2": {
+    id: "provider2",
+    name: "VerifyAI Labs",
+    logoText: "V",
+    logoBackground: "bg-sky-500",
+  },
+  "provider3": {
+    id: "provider3",
+    name: "TrueContent",
+    logoText: "T",
+    logoBackground: "bg-black",
+  },
+  "provider4": {
+    id: "provider4",
+    name: "AuthentiCheck",
+    logoText: "A",
+    logoBackground: "bg-purple-600",
   }
 };
 
@@ -41,6 +37,8 @@ export default function ResultPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
+  const hash = searchParams.get('hash');
+  const hashKey = searchParams.get('hashKey');
   
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -48,47 +46,88 @@ export default function ResultPage() {
   const [mintingNft, setMintingNft] = useState(false);
   const [nftMinted, setNftMinted] = useState(false);
   const [nftTokenId, setNftTokenId] = useState<string | null>(null);
+  const [walletAddress, setWalletAddress] = useState<string>('');
   
   // Load verification result
   useEffect(() => {
-    if (!id) {
+    // Check if MiniKit is available and get wallet address
+    if (MiniKit.isInstalled() && MiniKit.walletAddress) {
+      setWalletAddress(MiniKit.walletAddress);
+    } else {
+      setWalletAddress('0xDefaultWalletAddress');
+    }
+
+    if (!id || !hash || !hashKey) {
       router.push('/providers');
       return;
     }
     
-    // Simulate API call to get verification result
-    setTimeout(() => {
-      setLoading(false);
+    const fetchResult = async () => {
+      setLoading(true);
       
-      // Check if we have a mock result for this ID
-      if (id in mockResults) {
-        setResult(mockResults[id as keyof typeof mockResults]);
-      } else {
-        // Generate a random result for demo purposes
+      try {
+        // Make API call to verify content
+        const response = await fetch('/api/verify-content', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            providerId: 'provider1', // Default to provider1 for demo
+            hash,
+            hashKey,
+            walletAddress: walletAddress || '0xDefaultWalletAddress',
+            chain: 'WORLD' // Default to WORLD for demo
+          }),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to verify content');
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to verify content');
+        }
+        
+        // Format the result for display
+        setResult({
+          isHumanWritten: data.result.isHumanWritten,
+          confidenceScore: data.result.confidenceScore,
+          provider: providerData[data.result.provider as keyof typeof providerData],
+          chain: data.result.chain,
+          status: 'COMPLETED',
+          ipfsHash: hash,
+          transactionHash: `0x${Math.random().toString(36).substring(2, 10)}`, // Mock transaction hash
+        });
+      } catch (error: any) {
+        console.error('Error fetching verification result:', error);
+        setError(error.message || 'Failed to fetch verification result');
+        
+        // Generate a mock result for demo purposes if API fails
         const isHuman = Math.random() > 0.3; // 70% chance of being human-written
         const confidence = isHuman 
           ? 0.95 + (Math.random() * 0.05) // 95-100% for human content
           : 0.75 + (Math.random() * 0.15); // 75-90% for AI content
           
-        const randomResult = {
+        setResult({
           isHumanWritten: isHuman,
           confidenceScore: confidence,
-          provider: {
-            id: "provider1",
-            name: "RealText Systems",
-            logoText: "R",
-            logoBackground: "bg-indigo-600",
-          },
+          provider: providerData.provider1,
           chain: "WORLD",
           status: "COMPLETED",
-          ipfsHash: `Qm...${Math.random().toString(36).substring(2, 8)}`,
+          ipfsHash: hash || `Qm...${Math.random().toString(36).substring(2, 8)}`,
           transactionHash: `0x${Math.random().toString(36).substring(2, 10)}`,
-        };
-        
-        setResult(randomResult);
+        });
+      } finally {
+        setLoading(false);
       }
-    }, 1500);
-  }, [id, router]);
+    };
+    
+    fetchResult();
+  }, [id, hash, hashKey, router, walletAddress]);
   
   const handleMintNft = async () => {
     if (!result || !result.isHumanWritten || result.confidenceScore < 0.95) {
@@ -99,27 +138,32 @@ export default function ResultPage() {
     setError('');
     
     try {
-      // Check if MiniKit is available (running in World App)
-      if (MiniKit.isInstalled()) {
-        // In a real app, this would call your backend to mint the NFT on the blockchain
-        
-        // Simulate minting process
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Generate a mock token ID
-        const tokenId = `AUTH-${Math.floor(Math.random() * 1000000)}`;
-        setNftTokenId(tokenId);
-        setNftMinted(true);
-      } else {
-        // For testing outside World App
-        console.log('Not in World App, simulating NFT minting...');
-        
-        // Simulate minting process
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        const tokenId = `AUTH-${Math.floor(Math.random() * 1000000)}`;
-        setNftTokenId(tokenId);
-        setNftMinted(true);
+      // Mock NFT minting - in a real app, this would make a blockchain transaction
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Generate a mock token ID
+      const tokenId = `AUTH-${Math.floor(Math.random() * 1000000)}`;
+      setNftTokenId(tokenId);
+      setNftMinted(true);
+      
+      // Update the NFT token ID in the backend
+      if (hash) {
+        try {
+          await fetch('/api/update-nft', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              walletAddress: walletAddress,
+              hash: hash,
+              nftTokenId: tokenId
+            }),
+          });
+        } catch (error) {
+          console.error('Error updating NFT token ID:', error);
+          // We don't show this error to the user since the NFT appears to be minted already
+        }
       }
     } catch (error: any) {
       console.error('Error minting NFT:', error);
@@ -248,97 +292,84 @@ export default function ResultPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="card mb-6 shadow-lg bg-gradient-to-br from-indigo-50/50 to-blue-50/50 dark:from-indigo-900/20 dark:to-blue-900/20"
+          className="card mb-6"
         >
-          <div className="text-center">
-            <div className="mb-3">
-              <div className="h-16 w-16 mx-auto rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-2">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-primary">
-                  <path d="M3 8.2C3 7.07989 3 6.51984 3.21799 6.09202C3.40973 5.71569 3.71569 5.40973 4.09202 5.21799C4.51984 5 5.07989 5 6.2 5H17.8C18.9201 5 19.4802 5 19.908 5.21799C20.2843 5.40973 20.5903 5.71569 20.782 6.09202C21 6.51984 21 7.07989 21 8.2V15.8C21 16.9201 21 17.4802 20.782 17.908C20.5903 18.2843 20.2843 18.5903 19.908 18.782C19.4802 19 18.9201 19 17.8 19H6.2C5.07989 19 4.51984 19 4.09202 18.782C3.71569 18.5903 3.40973 18.2843 3.21799 17.908C3 17.4802 3 16.9201 3 15.8V8.2Z" stroke="currentColor" strokeWidth="1.5"/>
-                  <path d="M8.5 19V21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  <path d="M15.5 19V21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  <path d="M7.5 21H16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  <path d="M7 10H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  <path d="M7 14H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-high-contrast">Mint Authenticity Certificate</h3>
+          <h2 className="text-lg font-semibold text-high-contrast mb-2">Certificate Your Content</h2>
+          <p className="text-sm text-medium-contrast mb-4">
+            Your content has been verified as human-written with high confidence. You can now mint an NFT certificate to prove its authenticity.
+          </p>
+          
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm mb-4">
+              {error}
             </div>
-            
-            <p className="text-sm text-medium-contrast mb-4">
-              Your content has been verified as human-written with high confidence.
-              Mint an NFT certificate to prove authenticity.
-            </p>
-            
-            {error && (
-              <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm mb-4">
-                {error}
-              </div>
+          )}
+          
+          <button
+            onClick={handleMintNft}
+            disabled={mintingNft}
+            className="w-full btn-primary py-3 flex items-center justify-center"
+          >
+            {mintingNft ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Minting Certificate...
+              </>
+            ) : (
+              <>Mint Certificate NFT (1 USDC)</>
             )}
-            
-            <motion.button
-              onClick={handleMintNft}
-              disabled={mintingNft}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className={`btn-primary w-full ${mintingNft ? 'opacity-70' : ''}`}
-            >
-              {mintingNft ? 'Minting...' : 'Mint NFT Certificate'}
-            </motion.button>
-          </div>
+          </button>
+          
+          <p className="mt-3 text-xs text-center text-medium-contrast">
+            The NFT will be minted to your connected wallet address and will contain a permanent record of this verification.
+          </p>
         </motion.div>
       )}
       
-      {/* Success message after minting */}
-      {nftMinted && (
+      {/* NFT success card */}
+      {nftMinted && nftTokenId && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="card bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800/30 mb-6 shadow-lg"
+          className="card bg-green-50 dark:bg-green-900/20 mb-6"
         >
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-3 text-green-600 dark:text-green-400">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7.5 12L10.5 15L16.5 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-              </svg>
-              <h3 className="text-lg font-semibold ml-2">NFT Successfully Minted!</h3>
-            </div>
-            
-            <p className="text-sm text-green-700 dark:text-green-300 mb-1">
-              Your authenticity certificate has been minted on {result.chain}.
-            </p>
-            <p className="text-xs text-green-600 dark:text-green-400">
-              Token ID: {nftTokenId}
-            </p>
+          <div className="flex items-center mb-3">
+            <svg className="w-6 h-6 text-green-600 dark:text-green-400 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 13L10 16L17 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+            </svg>
+            <h2 className="text-lg font-semibold text-green-800 dark:text-green-300">Certificate Minted!</h2>
           </div>
+          
+          <p className="text-sm text-green-700 dark:text-green-400 mb-3">
+            Your NFT certificate has been successfully minted. You can now share your content with confidence that it has been verified as human-written.
+          </p>
+          
+          <div className="bg-white dark:bg-gray-800 p-3 rounded-lg mb-3 flex items-center justify-between">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Token ID:</span>
+            <span className="font-mono text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 px-2 py-1 rounded">{nftTokenId}</span>
+          </div>
+          
+          <button
+            onClick={() => router.push('/profile')}
+            className="w-full btn-secondary-green py-2.5"
+          >
+            View in Profile
+          </button>
         </motion.div>
       )}
       
-      {/* Action buttons */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="flex gap-4"
-      >
-        <button
+      <div className="text-center">
+        <button 
           onClick={() => router.push('/providers')}
-          className="btn-secondary flex-1"
+          className="btn-secondary mb-8"
         >
-          New Verification
+          Verify Another Text
         </button>
-        
-        <button
-          onClick={() => {
-            // Share result (would implement deeper sharing functionality in a real app)
-            alert('Sharing functionality would be implemented here');
-          }}
-          className="btn-primary flex-1"
-        >
-          Share Result
-        </button>
-      </motion.div>
+      </div>
     </div>
   );
 } 

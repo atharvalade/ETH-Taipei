@@ -27,5 +27,10 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
-  }
+  },
+  "description": "Authentica is a verification marketplace that helps verify human-created content vs AI-generated content. Using the World App ecosystem, users can submit content for verification by various providers and receive NFT certificates for verified human-created content.",
+  "main": "test-submit-api-ai.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
