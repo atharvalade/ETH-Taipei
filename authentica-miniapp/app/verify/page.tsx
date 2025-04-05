@@ -164,7 +164,7 @@ export default function VerifyPage() {
         
         // Navigate to results page with hash details
         setTimeout(() => {
-          router.push(`/result?id=${mockVerificationId}&hash=${hash}&hashKey=${hashKey}`);
+          router.push(`/result?id=${mockVerificationId}&hash=${hash}&hashKey=${encodeURIComponent(hashKey)}`);
         }, 1000);
       } else {
         // For testing outside World App
@@ -172,7 +172,7 @@ export default function VerifyPage() {
         
         // Simulate verification without World App integration
         setTimeout(() => {
-          router.push(`/result?id=${mockVerificationId}&hash=${hash}&hashKey=${hashKey}`);
+          router.push(`/result?id=${mockVerificationId}&hash=${hash}&hashKey=${encodeURIComponent(hashKey)}`);
         }, 1000);
       }
     } catch (error: any) {

@@ -39,6 +39,7 @@ export default function ResultPage() {
   const id = searchParams?.get('id') || '';
   const hash = searchParams?.get('hash') || '';
   const hashKey = searchParams?.get('hashKey') || '';
+  const decodedHashKey = hashKey ? decodeURIComponent(hashKey) : '';
   
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -77,7 +78,7 @@ export default function ResultPage() {
           body: JSON.stringify({
             providerId: 'provider1', // Default to provider1 for demo
             hash,
-            hashKey,
+            hashKey: decodedHashKey,
             walletAddress: walletAddress || '0xDefaultWalletAddress',
             chain: 'WORLD' // Default to WORLD for demo
           }),
@@ -129,7 +130,7 @@ export default function ResultPage() {
     };
     
     fetchResult();
-  }, [id, hash, hashKey, router, walletAddress]);
+  }, [id, hash, hashKey, router, walletAddress, decodedHashKey]);
   
   const handleMintNft = async () => {
     if (!result || !result.isHumanWritten || result.confidenceScore < 0.95) {
