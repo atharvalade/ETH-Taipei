@@ -26,8 +26,8 @@ export default function HomeContent({ stars, deployUrl }: HomeContentProps) {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-4 bg-gradient-to-br from-[#f8faff] via-white to-[#f0f7ff]">
-      <div className="z-10 w-full max-w-3xl px-5 xl:px-0 text-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-96px)] w-full">
+      <div className="z-10 w-full max-w-3xl px-5 xl:px-0 text-center transform -translate-y-8">
         <h1 
           className={`
             font-display font-bold tracking-[-0.02em] text-gray-900 leading-tight mb-6

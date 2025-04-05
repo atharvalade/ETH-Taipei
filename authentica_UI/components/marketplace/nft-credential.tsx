@@ -86,7 +86,17 @@ export default function NFTCredential() {
                   <div className="mt-4">
                     <div className="text-xs font-medium text-indigo-200 mb-1">Verification Score</div>
                     <div className="text-2xl font-bold text-white mb-2">98.7%</div>
-                    <div className="text-xs text-indigo-200">
+                    <div className="flex justify-between mb-2">
+                      <div>
+                        <div className="text-xs font-medium text-indigo-200 mb-1">Verification Method</div>
+                        <div className="text-sm font-medium text-white">Neural Watermarking</div>
+                      </div>
+                      <div className="border-l border-white/10 pl-2">
+                        <div className="text-xs font-medium text-indigo-200 mb-1">Provider</div>
+                        <div className="text-sm font-medium text-white">Authentica</div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-indigo-200 pt-2 border-t border-white/10">
                       <span className="inline-block w-16 overflow-hidden text-ellipsis">0x7f9c...</span> • Apr 2023
                     </div>
                   </div>

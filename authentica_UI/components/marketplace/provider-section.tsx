@@ -170,13 +170,6 @@ export default function ProviderSection() {
                 onMouseEnter={() => setHoveredRow(provider.id)}
                 onMouseLeave={() => setHoveredRow(null)}
               >
-                {provider.isPopular && (
-                  <div className="absolute top-0 left-0 right-0 -mt-3 mx-auto">
-                    <div className="mb-2 text-xs font-semibold text-white bg-black py-1 px-3 rounded-full inline-block shadow-md">
-                      POPULAR CHOICE
-                    </div>
-                  </div>
-                )}
                 <div className="h-16 flex items-center justify-center mt-4">
                   <motion.div 
                     whileHover={{ scale: 1.1 }}
