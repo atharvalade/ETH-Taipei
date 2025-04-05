@@ -1,8 +1,24 @@
 "use client";
-
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { useInView } from 'react-intersection-observer';
 
 export default function HowItWorks() {
+  const [isVisible, setIsVisible] = useState(false);
+  const { ref, inView } = useInView({
+    triggerOnce: true,
+    threshold: 0.2,
+  });
+  
+  useEffect(() => {
+    if (inView) {
+      const timer = setTimeout(() => {
+        setIsVisible(true);
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [inView]);
+  
   const steps = [
     {
       title: "Content Submission",
@@ -27,48 +43,47 @@ export default function HowItWorks() {
   ];
 
   return (
-    <section className="py-24 px-4 bg-gray-50">
-      <div className="max-w-6xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">How It Works</h2>
-          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-            Our streamlined verification process leverages blockchain technology for secure, transparent content verification.
-          </p>
-        </motion.div>
+    <div ref={ref} className="w-full">
+      <div 
+        className={`
+          text-center mb-16
+          ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
+          transition-all duration-700 ease-out
+        `}
+      >
+        <h2 className="text-4xl md:text-5xl font-bold mb-4">How It Works</h2>
+        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          Our streamlined verification process leverages blockchain technology for secure, transparent content verification.
+        </p>
+      </div>
 
-        <div className="relative">
-          {/* Connecting line */}
-          <div className="absolute top-1/2 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 to-indigo-500 transform -translate-y-1/2 hidden md:block"></div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
-            {steps.map((step, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
-                viewport={{ once: true }}
-                className="bg-white rounded-xl shadow-lg p-8 relative z-10"
-              >
-                <div className="w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center text-3xl mb-6 mx-auto">
-                  {step.icon}
-                </div>
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white border-4 border-indigo-500 z-20 hidden md:flex items-center justify-center text-lg font-bold text-indigo-500">
-                  {index + 1}
-                </div>
-                <h3 className="text-xl font-bold text-center mb-3">{step.title}</h3>
-                <p className="text-gray-600 text-center">{step.description}</p>
-              </motion.div>
-            ))}
-          </div>
+      <div className="relative">
+        {/* Connecting line */}
+        <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-200 hidden md:block"></div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+          {steps.map((step, index) => (
+            <div
+              key={index}
+              className={`
+                apple-card bg-white rounded-xl shadow-md p-6 relative
+                ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}
+                transition-all duration-700 ease-out
+              `}
+              style={{ transitionDelay: `${index * 150}ms` }}
+            >
+              <div className="w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center text-3xl mb-5 mx-auto z-10">
+                {step.icon}
+              </div>
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-medium text-sm border border-white shadow-md z-20">
+                {index + 1}
+              </div>
+              <h3 className="text-lg font-semibold text-center mb-3 text-gray-900">{step.title}</h3>
+              <p className="text-gray-600 text-center text-sm">{step.description}</p>
+            </div>
+          ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 } 

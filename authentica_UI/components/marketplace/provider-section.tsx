@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 
 export default function ProviderSection() {
   const [activeTab, setActiveTab] = useState("accuracy");
@@ -50,112 +49,101 @@ export default function ProviderSection() {
   });
   
   return (
-    <section className="py-24 px-4 bg-white">
-      <div className="max-w-6xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">Verification Providers</h2>
-          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-            Our marketplace creates healthy competition between verification algorithm providers, delivering better results for users.
-          </p>
-        </motion.div>
-        
-        {/* Tabs for different sorting options */}
-        <div className="flex justify-center mb-12">
-          <div className="inline-flex bg-gray-100 rounded-full p-1 shadow-sm">
-            {["accuracy", "speed", "price"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-6 py-2 text-sm font-medium rounded-full transition-all ${
-                  activeTab === tab 
-                    ? "bg-indigo-600 text-white shadow-md" 
-                    : "text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                Sort by {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
-          </div>
-        </div>
-        
-        {/* Provider cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {sortedProviders.map((provider, index) => (
-            <motion.div
-              key={provider.name}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+    <div className="max-w-6xl mx-auto">
+      <div className="text-center mb-16">
+        <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">Verification Providers</h2>
+        <p className="text-xl text-gray-900 max-w-3xl mx-auto font-medium">
+          Our marketplace creates healthy competition between verification algorithm providers, delivering better results for users.
+        </p>
+      </div>
+      
+      {/* Tabs for different sorting options */}
+      <div className="flex justify-center mb-12">
+        <div className="inline-flex bg-gray-100 rounded-full p-1 shadow-sm border-2 border-gray-300">
+          {["accuracy", "speed", "price"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-6 py-2 text-sm font-medium rounded-full transition-all ${
+                activeTab === tab 
+                  ? "bg-indigo-900 text-white shadow-md border border-indigo-900" 
+                  : "text-gray-900 hover:bg-gray-200 border border-gray-300"
+              }`}
             >
-              <div className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xl mr-3">
-                    {provider.logo}
-                  </div>
-                  <h3 className="text-lg font-bold">{provider.name}</h3>
-                </div>
-                
-                <div className="space-y-3 mb-6">
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-600">Accuracy</span>
-                      <span className="font-medium">{provider.accuracy}%</span>
-                    </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-green-500 rounded-full" 
-                        style={{ width: `${provider.accuracy}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-600">Speed</span>
-                      <span className="font-medium">{provider.speed}s</span>
-                    </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-blue-500 rounded-full" 
-                        style={{ width: `${(1/provider.speed) * 50}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-600">Price</span>
-                      <span className="font-medium">${provider.price}</span>
-                    </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-orange-500 rounded-full" 
-                        style={{ width: `${(1/provider.price) * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="text-sm font-medium text-gray-600 mb-4">
-                  Specialty: {provider.specialty}
-                </div>
-                
-                <button className="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-medium py-2 rounded-lg transition-colors">
-                  View Details
-                </button>
-              </div>
-            </motion.div>
+              Sort by {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
           ))}
         </div>
       </div>
-    </section>
+      
+      {/* Provider cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {sortedProviders.map((provider) => (
+          <div
+            key={provider.name}
+            className="bg-white rounded-2xl shadow-xl overflow-hidden border-2 border-gray-300"
+          >
+            <div className="h-2 bg-indigo-900"></div>
+            <div className="p-6">
+              <div className="flex items-center mb-6">
+                <div className="w-12 h-12 rounded-full bg-indigo-900 flex items-center justify-center text-white font-bold text-xl mr-3">
+                  {provider.logo}
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">{provider.name}</h3>
+              </div>
+              
+              <div className="space-y-4 mb-6">
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-gray-900 font-medium">Accuracy</span>
+                    <span className="font-bold text-gray-900">{provider.accuracy}%</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden border border-gray-300">
+                    <div 
+                      className="h-full bg-green-600 rounded-full" 
+                      style={{ width: `${provider.accuracy}%` }}
+                    ></div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-gray-900 font-medium">Speed</span>
+                    <span className="font-bold text-gray-900">{provider.speed}s</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden border border-gray-300">
+                    <div 
+                      className="h-full bg-blue-600 rounded-full" 
+                      style={{ width: `${(1/provider.speed) * 50}%` }}
+                    ></div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-gray-900 font-medium">Price</span>
+                    <span className="font-bold text-gray-900">${provider.price}</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden border border-gray-300">
+                    <div 
+                      className="h-full bg-orange-600 rounded-full" 
+                      style={{ width: `${(1/provider.price) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="text-sm font-bold text-gray-900 mb-4">
+                Specialty: {provider.specialty}
+              </div>
+              
+              <button className="w-full bg-indigo-900 hover:bg-indigo-800 text-white font-bold py-2 rounded-lg transition-colors">
+                View Details
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 } 
