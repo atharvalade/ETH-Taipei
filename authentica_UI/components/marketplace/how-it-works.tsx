@@ -48,9 +48,9 @@ export default function HowItWorks() {
       const scrollProgress = Math.max(0, Math.min(1, (windowHeight - sectionTop) / (sectionHeight + windowHeight)));
       
       // Map progress to steps (0-3) with smoother transitions
-      if (scrollProgress <= 0.25) setActiveStep(0);
-      else if (scrollProgress <= 0.5) setActiveStep(1);
-      else if (scrollProgress <= 0.75) setActiveStep(2);
+      if (scrollProgress <= 0.2) setActiveStep(0);
+      else if (scrollProgress <= 0.45) setActiveStep(1);
+      else if (scrollProgress <= 0.7) setActiveStep(2);
       else setActiveStep(3);
     };
     
@@ -112,23 +112,23 @@ export default function HowItWorks() {
 
       <div ref={sectionRef} className="relative pb-36 min-h-[1500px]">
         {/* Centered fixed-width container for better alignment */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 flex flex-col items-center">
+        <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1.5 flex flex-col items-center">
           {/* Animated vertical timeline line */}
           <motion.div 
             className="absolute h-full w-1.5 bg-gray-200 rounded-full"
             style={{ 
-              scaleY: useTransform(scrollYProgress, [0, 1], [0, 1]),
-              transformOrigin: "top",
-              background: "linear-gradient(to bottom, #000, #666)"
+              background: "linear-gradient(to bottom, #000, #666)",
+              height: "100%"
             }}
           />
         </div>
         
         {/* Moving dot that animates between steps */}
         <motion.div 
-          className="absolute left-1/2 transform -translate-x-1/2 w-7 h-7 rounded-full bg-black z-20 shadow-lg"
+          className="absolute left-1/2 w-7 h-7 rounded-full bg-black z-20 shadow-lg"
           style={{ 
-            top: `calc(${activeStep * 25}% + 5%)`,
+            top: `calc(${activeStep * 25}% + 7.5rem)`,
+            transform: 'translateX(-50%)', // Force precise centering
             boxShadow: '0 0 20px rgba(0,0,0,0.3)'
           }}
           animate={{
@@ -262,11 +262,14 @@ export default function HowItWorks() {
               {/* Connecting dot */}
               <motion.div 
                 className={`
-                  absolute top-[2.5rem] left-1/2 transform -translate-x-1/2
-                  w-6 h-6 rounded-full border-3 border-white
+                  absolute top-[7.5rem] left-1/2
+                  w-7 h-7 rounded-full border-3 border-white
                   ${isActive ? 'bg-black' : 'bg-gray-300'}
                   transition-all duration-300 z-10
                 `}
+                style={{
+                  transform: 'translateX(-50%)' // Force precise centering
+                }}
                 animate={isActive ? {
                   scale: [1, 1.3, 1],
                   boxShadow: ['0 0 0 0 rgba(0,0,0,0)', '0 0 0 5px rgba(0,0,0,0.1)', '0 0 0 0 rgba(0,0,0,0)']
