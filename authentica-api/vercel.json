@@ -12,9 +12,6 @@
       "maxDuration": 10
     }
   },
-  "env": {
-    "PINATA_JWT": "@pinata-jwt"
-  },
   "headers": [
     {
       "source": "/api/(.*)",
