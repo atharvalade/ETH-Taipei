@@ -4,7 +4,7 @@
 import { NextResponse } from 'next/server';
 
 // Get the API URL from environment variables
-const API_URL = process.env.NEXT_PUBLIC_VERCEL_API_URL || 'http://localhost:3000/api/authentica';
+const API_URL = process.env.NEXT_PUBLIC_VERCEL_API_URL || 'https://ipfs-api1-ethtaipei.vercel.app/api/authentica';
 
 export async function GET(request) {
   // Forward the search params

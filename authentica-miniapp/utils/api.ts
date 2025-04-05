@@ -26,8 +26,8 @@ const getApiUrl = () => {
     return process.env.NEXT_PUBLIC_VERCEL_API_URL;
   }
   
-  // In development, use localhost
-  return process.env.BACKEND_API_URL || 'http://localhost:3001/api/authentica';
+  // Fallback to the deployed API URL
+  return process.env.BACKEND_API_URL || 'https://ipfs-api1-ethtaipei.vercel.app/api/authentica';
 };
 
 export async function submitContent(content: string, walletAddress: string): Promise<ContentSubmissionResponse> {

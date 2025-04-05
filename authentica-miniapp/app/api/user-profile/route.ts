@@ -16,8 +16,8 @@ export async function GET(req: NextRequest) {
     }
 
     // Call the backend API to get user profile data
-    const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
-    const response = await fetch(`${backendUrl}/api/user/${walletAddress}`, {
+    const backendUrl = process.env.BACKEND_API_URL || 'https://ipfs-api1-ethtaipei.vercel.app';
+    const response = await fetch(`${backendUrl}/api/authentica?action=user&walletAddress=${walletAddress}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
