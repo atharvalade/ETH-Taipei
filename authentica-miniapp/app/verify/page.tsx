@@ -202,7 +202,7 @@ export default function VerifyPage() {
   };
   
   // Update the verification request to include payment token information
-  const verifyContent = async (hash: string, hashKey: string, userWalletAddress: string) => {
+  const _verifyContent = async (hash: string, hashKey: string, userWalletAddress: string) => {
     // Get the API URL from environment variables, fallback to relative URL for local dev
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
     
