@@ -118,8 +118,15 @@ export default function VerifyPage() {
         // Generate a verification ID for tracking
         const mockVerificationId = `verify-${Math.random().toString(36).substring(2, 10)}`;
         
+        // Use URLSearchParams to properly encode parameter values
+        const queryParams = new URLSearchParams();
+        queryParams.set('id', mockVerificationId);
+        queryParams.set('hash', storedContentHash);
+        queryParams.set('hashKey', storedHashKey);
+        queryParams.set('wallet', walletAddress);
+        
         // Navigate to results page with hash details
-        router.push(`/result?id=${mockVerificationId}&hash=${storedContentHash}&hashKey=${storedHashKey}`);
+        router.push(`/result?${queryParams.toString()}`);
       }
     } catch (error: any) {
       console.error('Error during verification:', error);

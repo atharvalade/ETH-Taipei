@@ -21,16 +21,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // FIX: Try to decode hashKey if it's URL encoded
+    // This helps when hashKey comes from URL parameters and might be encoded
+    let decodedHashKey = hashKey;
+    try {
+      // First check if it appears to be encoded (contains % characters)
+      if (hashKey.includes('%')) {
+        console.log('[verify-content] HashKey appears to be URL encoded, attempting to decode');
+        decodedHashKey = decodeURIComponent(hashKey);
+        console.log('[verify-content] Original hashKey:', hashKey);
+        console.log('[verify-content] Decoded hashKey:', decodedHashKey);
+      }
+    } catch (decodeError) {
+      console.error('[verify-content] Error decoding hashKey, using original value:', decodeError);
+      decodedHashKey = hashKey; // Fallback to original if decoding fails
+    }
+
     // Call the backend API directly
     const backendUrl = 'https://ipfs-api1-ethtaipei.vercel.app/api/authentica';
     console.log(`[verify-content] Calling backend API: ${backendUrl}`);
     
-    // Forward the exact same parameters without any manipulation
+    // Forward the parameters using the decoded hashKey 
     const backendRequestBody = {
       action: 'verify',
       providerId,
       hash,
-      hashKey,
+      hashKey: decodedHashKey, // Use decoded hashKey here
       walletAddress,
       chain
     };
