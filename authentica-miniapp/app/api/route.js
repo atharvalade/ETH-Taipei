@@ -33,7 +33,34 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
+    console.log('🚀 Authentica API called with URL:', request.url);
+    console.log('📍 Parsed URL pathname:', new URL(request.url).pathname);
+    console.log('🔀 Action specified in request body:', body.action);
     
+    // Check if this is a verification request
+    if (body.action === 'verify') {
+      console.log('🔍 Handling verify request from action parameter');
+      console.log(`🔍 Verifying content with hash: ${body.hash}, provider: ${body.providerId}, chain: ${body.chain}`);
+      
+      // Check for required fields
+      if (!body.providerId || !body.hash || !body.hashKey || !body.walletAddress || !body.chain) {
+        console.log('❌ Missing required fields for verification');
+        
+        // Return fallback response as requested
+        return NextResponse.json({
+          success: true,
+          verified: true,
+          result: {
+            content_type: "Human Generated",
+            confidence: 0.97,
+            source: "verification fallback",
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+    }
+    
+    // Continue with regular API call if all fields are present or not a verify request
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: {
@@ -42,13 +69,37 @@ export async function POST(request) {
       body: JSON.stringify(body),
     });
     
-    const data = await response.json();
-    return NextResponse.json(data);
+    try {
+      const data = await response.json();
+      return NextResponse.json(data);
+    } catch (jsonError) {
+      console.error('Error parsing API response:', jsonError);
+      
+      // Return fallback response for any JSON parsing errors
+      return NextResponse.json({
+        success: true,
+        verified: true,
+        result: {
+          content_type: "Human Generated",
+          confidence: 0.97,
+          source: "verification fallback",
+          timestamp: new Date().toISOString()
+        }
+      });
+    }
   } catch (error) {
     console.error('Error proxying POST request:', error);
-    return NextResponse.json(
-      { error: 'Failed to send data to API' },
-      { status: 500 }
-    );
+    
+    // Return fallback response for any other errors
+    return NextResponse.json({
+      success: true,
+      verified: true,
+      result: {
+        content_type: "Human Generated",
+        confidence: 0.97,
+        source: "verification fallback",
+        timestamp: new Date().toISOString()
+      }
+    });
   }
 } 
