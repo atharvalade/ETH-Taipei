@@ -18,6 +18,8 @@ const DEFAULT_FALLBACK_RESPONSE = {
   }
 };
 
+//add
+
 export async function GET(request) {
   // Forward the search params
   const url = new URL(request.url);
