@@ -201,36 +201,6 @@ export default function VerifyPage() {
     }
   };
   
-  // Update the verification request to include payment token information
-  const _verifyContent = async (hash: string, hashKey: string, userWalletAddress: string) => {
-    // Get the API URL from environment variables, fallback to relative URL for local dev
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
-    
-    const verifyResponse = await fetch(`${apiUrl}/authentica`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'verify',
-        providerId: providerId,
-        hash: hash,
-        hashKey: hashKey,
-        walletAddress: userWalletAddress,
-        chain: 'WORLD',
-        paymentToken: 'USDC',
-        paymentAmount: 0.1  // Explicitly include the fixed payment amount
-      }),
-    });
-    
-    if (!verifyResponse.ok) {
-      const errorData = await verifyResponse.json();
-      throw new Error(errorData.error || 'Verification failed');
-    }
-    
-    return await verifyResponse.json();
-  };
-  
   if (!provider) {
     return (
       <div className="relative z-10 container-mobile flex items-center justify-center min-h-[60vh]">
