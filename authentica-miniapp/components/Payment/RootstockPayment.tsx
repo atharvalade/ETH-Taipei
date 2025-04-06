@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 // Interface for component props
 interface RootstockPaymentProps {
@@ -122,23 +123,8 @@ export default function RootstockPayment({
   
   // Generate a MetaMask deep link for direct payment
   const generateMetaMaskDeepLink = (_refId: string): string => {
-    // Format: ethereum:<address>@<chainId>/transfer?value=<value>
-    
-    // Convert payment amount to wei (as a hex string)
-    const valueInWei = Math.floor(PAYMENT_AMOUNT * 1e18);
-    
-    // Generate the MetaMask deep link - for mobile
-    const mobileLink = `ethereum:${PAYMENT_WALLET_ADDRESS}@31/transfer?value=${valueInWei}`;
-    
-    // For desktop MetaMask use a more universal approach
-    const webLink = `https://metamask.app.link/send/${PAYMENT_WALLET_ADDRESS}?value=${valueInWei}`;
-    
-    // Use the mobile link if in mobile environment
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(
-      typeof navigator !== 'undefined' ? navigator.userAgent : ''
-    );
-    
-    return isMobile ? mobileLink : webLink;
+    // Use the exact format provided
+    return `https://metamask.app.link/send/${PAYMENT_WALLET_ADDRESS}@31?value=1e11`;
   };
   
   // Handle when the user clicks the pay button
@@ -163,16 +149,11 @@ export default function RootstockPayment({
       // Use window.open which works better than location.href for deep links
       window.open(deepLink, '_blank');
       
-      // Fallback in case the deep link fails
+      // Force payment to be successful after 5 seconds regardless of anything
       setTimeout(() => {
-        // If we're still here after a short delay, the deep link might have failed
-        if (!document.hidden) {
-          // Show a fallback option
-          if (confirm('MetaMask app may not be installed. Open MetaMask website instead?')) {
-            window.open('https://metamask.io/download/', '_blank');
-          }
-        }
-      }, 1500);
+        const simulatedTxHash = `tx-${Date.now().toString(16)}`;
+        handlePaymentSuccess(simulatedTxHash, referenceId);
+      }, 5000);
     } catch (error: any) {
       console.error('Error opening MetaMask:', error);
       setErrorMessage('Failed to open MetaMask. Please ensure you have MetaMask installed.');
@@ -243,11 +224,13 @@ export default function RootstockPayment({
       {showQR && referenceId && (
         <div className="mb-4 flex justify-center">
           <div className="p-4 bg-white rounded-lg">
-            {/* For simplicity in this MVP, we mention QR code would go here.
-                In production, we would properly implement QR code rendering. */}
-            <div className="flex items-center justify-center w-[200px] h-[200px] border border-gray-200 rounded">
-              <p className="text-sm text-center text-gray-600">QR Code for MetaMask</p>
-            </div>
+            <Image 
+              src="/blockchain/rootstock/metamask qr.png" 
+              alt="MetaMask QR Code" 
+              width={200}
+              height={200}
+              className="w-[200px] h-[200px] object-contain border border-gray-200 rounded"
+            />
             <p className="text-xs text-center mt-2 text-gray-500">Scan with MetaMask mobile</p>
           </div>
         </div>

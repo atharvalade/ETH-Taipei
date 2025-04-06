@@ -236,35 +236,19 @@ export default function ResultPage() {
     // Wallet address is the same as used for verification
     const receiverAddress = '0xa20C96EA7B9AbAe32217EbA25577cDe099039D5D';
     
-    // Payment amount in rBTC (0.00001 ≈ $1)
-    const paymentAmount = 0.00001;
-    
-    // Convert to wei (as an integer)
-    const valueInWei = Math.floor(paymentAmount * 1e18);
-    
     try {
       console.log('Opening MetaMask for NFT payment...');
       
-      // Generate the MetaMask deep link based on platform
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(
-        typeof navigator !== 'undefined' ? navigator.userAgent : ''
-      );
-      
-      // Create appropriate links for mobile vs desktop
-      const mobileLink = `ethereum:${receiverAddress}@31/transfer?value=${valueInWei}`;
-      const webLink = `https://metamask.app.link/send/${receiverAddress}?value=${valueInWei}`;
-      
-      const deepLink = isMobile ? mobileLink : webLink;
+      // Use the exact format provided
+      const deepLink = `https://metamask.app.link/send/${receiverAddress}@31?value=1e11`;
       
       // Use window.open which works better than location.href for deep links
       window.open(deepLink, '_blank');
       
-      // After a short timeout, if the user is still on the page, assume they want to proceed anyway
+      // Force payment to be successful after 5 seconds regardless of outcome
       setTimeout(() => {
-        if (!document.hidden) {
-          handleMintNft();
-        }
-      }, 3000);
+        handleMintNft();
+      }, 5000);
     } catch (error) {
       console.error('Error opening MetaMask:', error);
       // Fall back to regular minting
