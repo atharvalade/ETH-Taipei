@@ -218,7 +218,8 @@ export default function VerifyPage() {
         hashKey: hashKey,
         walletAddress: userWalletAddress,
         chain: 'WORLD',
-        paymentToken: 'USDC'
+        paymentToken: 'USDC',
+        paymentAmount: 0.1  // Explicitly include the fixed payment amount
       }),
     });
     
@@ -377,8 +378,8 @@ export default function VerifyPage() {
           <PaymentSelector
             providerId={providerId || ''}
             providerName={provider.name || ''}
-            price={provider.price || 0}
-            currency={provider.currency || 'USDC'}
+            _price={provider.price || 0}
+            _currency={provider.currency || 'USDC'}
             walletAddress={walletAddress}
             onPaymentSuccess={handlePaymentSuccess}
             onPaymentError={handlePaymentError}

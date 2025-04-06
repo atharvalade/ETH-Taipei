@@ -9,8 +9,8 @@ import { PayCommandInput, tokenToDecimals, Tokens, MiniKit } from "@worldcoin/mi
 interface PaymentSelectorProps {
   providerId: string;
   providerName: string;
-  price: number;
-  currency: string;
+  _price: number;  // Renamed to indicate it's unused
+  _currency: string;  // Renamed to indicate it's unused 
   walletAddress: string;
   onPaymentSuccess: (_txHash: string, _referenceId: string) => void;
   onPaymentError: (_error: string) => void;
@@ -19,8 +19,8 @@ interface PaymentSelectorProps {
 export default function PaymentSelector({
   providerId,
   providerName,
-  price,
-  currency,
+  _price,  // Now matches interface
+  _currency, // Now matches interface
   walletAddress,
   onPaymentSuccess,
   onPaymentError
@@ -53,20 +53,15 @@ export default function PaymentSelector({
       
       const { id: referenceId } = await initiateResponse.json();
       
-      // Step 2: Create payment payload for World chain
+      // Step 2: Create payment payload for World chain - always use 0.1 USDC.E
       const payload: PayCommandInput = {
         reference: referenceId,
         to: '0x3f2c9135872431e0957bc25ac334a7c63c92a10f', // Recipient address
         tokens: [
-          currency === 'USDC' ? 
-            {
-              symbol: Tokens.USDCE,
-              token_amount: tokenToDecimals(price, Tokens.USDCE).toString(),
-            } : 
-            {
-              symbol: Tokens.WLD,
-              token_amount: tokenToDecimals(price, Tokens.WLD).toString(),
-            }
+          {
+            symbol: Tokens.USDCE,
+            token_amount: tokenToDecimals(0.1, Tokens.USDCE).toString(),
+          }
         ],
         description: `Authentica verification by ${providerName}`,
       };
@@ -151,7 +146,7 @@ export default function PaymentSelector({
           <div className="mb-4">
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">Amount:</p>
             <p className="font-medium text-lg">
-              {price} {currency}
+              0.1 USDC.E
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               For verification by {providerName}
