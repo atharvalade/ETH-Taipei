@@ -144,8 +144,8 @@ export default function ResultPage() {
             ipfsHash: hash,
             transactionHash: `0x${Math.random().toString(36).substring(2, 10)}`, // Mock transaction hash
             paymentInfo: {
-              token: data.result.paymentToken || 'USDC', // Default to USDC if not specified
-              amount: data.result.paymentToken === 'WLD' ? '1 WLD' : '0.1 USDC'
+              token: 'USDC', // Always use USDC
+              amount: '0.1 USDC' // Always use 0.1 USDC
             }
           });
         } else {
@@ -177,6 +177,10 @@ export default function ResultPage() {
           status: "COMPLETED",
           ipfsHash: hash || `Qm...${Math.random().toString(36).substring(2, 8)}`,
           transactionHash: `0x${Math.random().toString(36).substring(2, 10)}`,
+          paymentInfo: {
+            token: 'USDC',
+            amount: '0.1 USDC'
+          }
         });
       } finally {
         setLoading(false);
